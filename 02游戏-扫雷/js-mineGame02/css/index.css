@@ -1,0 +1,128 @@
+* {
+    /* 初始化内外边距 */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 居中 */
+body {
+    text-align: center;
+    position: relative;
+}
+
+.mineBox {
+    margin-top: 50px;
+}
+
+/* 表格样式 */
+table {
+    margin: 0 auto;
+    border-spacing: 1px;
+}
+
+table tr {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    letter-spacing: -8px;
+}
+
+table td {
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    background: rgba(32, 226, 255, 0.41);
+    border: 1px solid rgb(129, 129, 129);
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: normal;
+    position: relative;
+}
+
+td>div {
+    width: 100%;
+    height: 100%;
+}
+
+td .mine {
+    background: transparent url("../images/mine.png") center/cover no-repeat;
+    opacity: 0.8;
+    background-size: 35px 35px;
+}
+
+td .flag {
+    background: transparent url("../images/flag.png") center/cover no-repeat;
+    opacity: 0.9;
+    background-size: 35px 35px;
+}
+.clickFlag {
+    margin: 0 auto;
+    margin-top: 20px;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    background: rgba(32, 226, 255, 0.41);
+    border: 1px solid rgb(129, 129, 129);
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: normal;
+    position: relative;
+    background: transparent url("../images/flag.png") center/cover no-repeat;
+    background-size: 35px 35px;
+}
+
+td .error {
+    background: red url("../images/mine.png") center/cover no-repeat;
+    opacity: 0.9;
+    background-size: 35px 35px;
+    
+}
+td .right {
+    background: green url("../images/mine.png") center/cover no-repeat;
+    opacity: 0;
+    background-size: 35px 35px;
+    
+}
+
+
+
+.hide {
+    display: none;
+}
+
+.num-1 {
+    color: rgb(8, 153, 235);
+}
+
+.num-2 {
+    color: rgb(255, 45, 178);
+}
+
+.num-3 {
+    color: rgb(109, 224, 176);
+}
+
+.num-4 {
+    color: rgb(8, 153, 235);
+}
+
+.num-5 {
+    color: rgb(255, 167, 45);
+}
+
+.num-6 {
+    color: rgb(49, 140, 102);
+}
+
+.num-7 {
+    color: rgb(168, 55, 237);
+}
+
+.num-8 {
+    color: rgb(15, 254, 154);
+}

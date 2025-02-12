@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>俄罗斯方块02</title>
+    <style>
+        body {
+            background-color: #fff;
+            text-align: center;
+            overflow-x: hidden;
+            padding-top: 30px;
+        }
+
+        .container {}
+
+        .clickCreate {}
+
+        img {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        #canvas {}
+
+        .title {
+            width: 100%;
+            font-size: 1.2rem;
+            height: 4rem;
+            line-height: 4rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+        }
+
+        .button_box {
+            display: flex;
+            justify-content: space-between;
+            width: 18rem;
+            line-height: 4rem;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div scroll="no" class="container">
+        <!-- <div class="title">俄罗斯方块（第二步）</div> -->
+        <div class="button_box">
+            <div id="clickCreate"><img src="../images/arrow-start.png"></img></div>
+            <div>
+                <img onClick="clickPorS()" style="display: none"  id="btn1" src="../images/arrow-pause.png"></img>
+
+            </div>
+        </div>
+        <!-- 绘制表格区域 -->
+        <canvas id="canvas"></canvas>
+        <div class="button_box" style="cursor:pointer;">
+            <div style="display: flex; justify-content: space-between;">
+                <div id="clickMoveLeft"><img src="../images/arrow-left.png"></img></div>
+                <div id="clickMoveRight"><img src="../images/arrow-right.png"></img></div>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+
+                <div id="clickTurnLeft"><img src="../images/arrow-roll-left.png"></img></div>
+                <div id="clickMoveDown"><img src="../images/arrow-down.png"></img></div>
+                <div id="clickTurnRight"><img src="../images/arrow-roll-right.png"></img></div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let canvas = document.getElementById("canvas")
+        let box = canvas.getContext('2d')
+
+        /*
+        * 基础配置
+        */
+
+        // 整体容器宽高
+        canvas.width = 288
+        canvas.height = 480
+
+
+        // 每个格子宽高
+        let Width = 24
+        let Height = 24
+
+        // 图形
+        let curShape
+
+        // 初始图形所在位子
+        let coorX = 5
+        let coorY = 0
+
+        // 当前方向
+        let nowDirection
+
+
+
+
+        box.fillStyle = 'black'
+        box.fillRect(0, 0, canvas.width, canvas.height)
+        box.strokeRect(0, 0, canvas.width, canvas.height)
+
+
+
+        let boxArray = [...Array(canvas.width / Width)].map(e => Array(canvas.height / Height).fill(0)) // 二维数组，映射关系
+        let boxArrayFlag = [...Array(canvas.width / Width)].map(e => Array(canvas.height / Height).fill(0)) // 标识位二维数组，默认0
+
+        // 七种图形
+        let one = [[1, 0], [0, 1], [1, 1], [2, 1]] // 土
+        let two = [[0, 0], [1, 0], [2, 0], [3, 0]] // 一
+        let three = [[1, 0], [2, 0], [0, 1], [1, 1]]// 反z
+        // let four = [[0, 0], [0, 1], [1, 0], [1, 1]] // 田
+        let five = [[0, 0], [0, 1], [1, 1], [2, 1]] // L
+        let sex = [[0, 1], [0, 0], [1, 0], [2, 0]]  // I一
+        let seven = [[0, 0], [1, 0], [2, 0], [1, 1]] // T
+
+        let shapes = [one, two, three, five, sex, seven]
+        // 记录方向
+        const DIRECTION = {
+            NO: 0,
+            LEFT: 1,
+            RIGHT: 2,
+            DOWN: 3
+
+        }
+
+
+        /*
+        * 主逻辑
+        */
+
+        // 构造坐标类
+        class Coordinate {
+            constructor(x, y) {
+                this.x = x
+                this.y = y
+
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initBox)
+
+        function initBox() {
+            createBoxArray() // 生成数据
+
+            bindClick() // 监听点击事件
+        }
+
+
+        // createBoxArray()
+        console.log(boxArray)
+        // 生成二维数组
+        function createBoxArray() {
+            let i = 0, j = 0
+            for (let y = 0; y <= canvas.height; y += Height) {
+                for (let x = 0; x <= canvas.width; x += Width) {
+                    if (!boxArray[i]) {
+                        // console.log(i,j)
+                    } else {
+
+                        boxArray[i][j] = new Coordinate(x, y)
+
+                    }
+                    i++
+                }
+                j++
+                i = 0
+            }
+            createLine()
+        }
+        // 创建内部线条
+        function createLine() {
+
+            for (let y = 0; y <= canvas.height; y += Height) {
+                box.beginPath();
+                box.moveTo(0, y);
+                box.lineTo(canvas.width, y);
+                box.strokeStyle = '#006600';
+                box.lineWidth = 1;
+                box.stroke();
+
+            }
+
+            for (let x = 0; x <= canvas.width; x += Width) {
+                box.beginPath();
+                box.moveTo(x, 0);
+                box.lineTo(x, canvas.height);
+                box.strokeStyle = '#006600';
+                box.lineWidth = 1;
+                box.stroke();
+
+            }
+
+        }
+
+
+        // 绘制七种图形
+        function drawBoxArray() {
+            for (let i = 0; i < curShape.length; i++) {
+                let a = curShape[i][0] + coorX
+                let b = curShape[i][1] + coorY
+
+                boxArrayFlag[a][b] = 1 // 标识位
+
+                let boxX = boxArray[a][b].x
+                let boxY = boxArray[a][b].y
+                box.fillStyle = 'hsl(' + this.randomColor + ',100%,50%)'
+
+                box.fillRect(boxX + 1, boxY + 1, Width - 1, Height - 1)
+
+            }
+        }
+        // 随机颜色
+        function getRandomColor() {
+            this.randomColor = Math.random() * 360
+        }
+        // 遍历、清除
+        function removeBoxArray() {
+            if (!curShape) {
+                return false
+            }
+            for (let i = 0; i < curShape.length; i++) {
+                let a = curShape[i][0] + coorX
+                let b = curShape[i][1] + coorY
+
+                boxArrayFlag[a][b] = 0 // 标识位
+
+                let boxX = boxArray[a][b].x
+                let boxY = boxArray[a][b].y
+                box.fillStyle = "black";
+                box.fillRect(boxX + 1, boxY + 1, Width - 1, Height - 1)
+
+            }
+        }
+        // 随机取出图形
+        function randomBoxArray() {
+            let randomIndex = Math.floor(Math.random() * shapes.length) //随机取图形
+            let shape = shapes[randomIndex]
+            curShape = shape
+        }
+        // 检查左右
+        function checkLeftRight() {
+            //遍历当前图形
+            for (let i = 0; i < curShape.length; i++) {
+                let newX = curShape[i][0] + coorX
+                console.log(newX)
+                if (newX <= 0 && nowDirection === DIRECTION.LEFT) {
+                    return true
+                } else if (newX >= 11 && nowDirection === DIRECTION.RIGHT) {
+                    return true
+                }
+            }
+            return false
+        }
+        // 检查底部
+        function checkDown() {
+            let isTrueBottom = false // 记录是否碰见底部
+
+
+            for (let j = 0; j < curShape.length; j++) {
+                // 每一个小方块
+                const block = curShape[j]
+                let x = block[0] + coorX //第0位+默认位子
+                let y = block[1] + coorY
+
+                // 方向向下
+                if (nowDirection == DIRECTION.DOWN) {
+                    y++
+                }
+                // 是否到达底部
+                if (y >= canvas.height / Height || boxArrayFlag[x][y] == undefined) {
+                    console.log("碰到底部了")
+                    isTrueBottom = true
+                    break;
+                }
+
+
+                // 避免重合
+                if (boxArrayFlag[x][y + 1] == 1 || boxArrayFlag[x][y + 1] == undefined) {
+                    console.log("SS")
+                    removeBoxArray()
+                    coorY++
+                    drawBoxArray()
+                    isTrueBottom = true
+                    break;
+                }
+
+            }
+
+            // 自动重新随机生成
+            if (isTrueBottom) {
+            
+                getNewBox() // 重新生成
+                nowDirection = DIRECTION.no // 方向清除
+            }
+
+            return isTrueBottom
+        }
+
+        // 旋转图形
+        function turnLShape() {
+
+            let shapeCopy = curShape
+            let newShape = []
+
+            //遍历每个坐标，变换x，y
+            for (let i = 0; i < shapeCopy.length; i++) {
+                let x = shapeCopy[i][0]
+                let y = shapeCopy[i][1]
+                // let newX = getLastX()-y 
+                let newX = y
+                let newY = 2 - x
+                // 填充获取到的新x新y
+                newShape.push([newX, newY])
+            }
+
+            removeBoxArray() // 删除
+            curShape = newShape
+            drawBoxArray() // 重新绘制
+        }
+        function turnRShape() {
+
+            let shapeCopy = curShape
+            let newShape = []
+
+            //遍历每个坐标，变换x，y
+            for (let i = 0; i < shapeCopy.length; i++) {
+                let x = shapeCopy[i][0]
+                let y = shapeCopy[i][1]
+                // let newX = getLastX()-y 
+                let newX = 2 - y
+                let newY = x
+                // 填充获取到的新x新y
+                newShape.push([newX, newY])
+            }
+
+            removeBoxArray() // 删除
+            curShape = newShape
+            drawBoxArray() // 重新绘制
+        }
+        // 最大值
+        function getLastX() {
+            let lastX = 0
+            for (let i = 0; i < curShape.length; i++) {
+                let block = curShape[i]
+                if (block[0] > lastX) {
+                    lastX = block[0]
+                }
+            }
+            return lastX
+        }
+
+        // 组合调用的方法
+        function getNewBox() {
+            getRandomColor()
+
+            randomBoxArray()
+            coorX = 5
+            coorY = 0
+            drawBoxArray()
+        }
+
+
+        let lastTime = 0  // 最后一次时间
+        let intervalTime = 0 // 间隔
+        // 动画函数
+        function animate(time) {
+            if (!time) {
+                time = 0
+            }
+            intervalTime += time - lastTime // 累加
+            if (intervalTime > 2000) {
+                intervalTime = 0
+                // 下移动
+                nowDirection = DIRECTION.DOWN
+                if (!checkDown()) {
+                    removeBoxArray()
+                    coorY++
+                    drawBoxArray()
+                }
+            }
+
+            lastTime = time
+            window.requestAnimationFrame(animate)
+        }
+       
+        function clickPorS() {
+            var imgObj = document.getElementById("btn1");
+            if (imgObj.getAttribute("src", 2) == "../images/arrow-pause.png") {
+                imgObj.src = "../images/arrow-start.png";
+            } else {
+                imgObj.src = "../images/arrow-pause.png";
+            }
+        }
+
+        /*
+        监听事件
+        **/
+        var pORs = document.getElementById("clickPorS")
+        function bindClick(time) {
+            this.clickCreate.onmousedown = (e) => {
+                console.log("生成")
+                removeBoxArray()
+                getNewBox()
+                animate() /// 定时器
+                btn1.style.display = 'block' //显示右边 开始，暂停按钮
+
+            
+
+            }
+      
+
+          
+
+            this.clickTurnLeft.onmousedown = function (e) {
+                console.log("左转")
+                turnLShape()
+
+
+            }
+            this.clickTurnRight.onmousedown = function (e) {
+                console.log("右转")
+                turnRShape()
+
+            }
+
+            this.clickMoveLeft.onmousedown = function (e) {
+                console.log("左移")
+                nowDirection = DIRECTION.LEFT
+                if (!checkLeftRight()) {
+                    removeBoxArray()
+                    coorX--
+                    drawBoxArray()
+
+                }
+
+            }
+            this.clickMoveRight.onmousedown = function (e) {
+                console.log("右移")
+                nowDirection = DIRECTION.RIGHT
+                if (!checkLeftRight()) {
+                    removeBoxArray()
+                    coorX++
+                    drawBoxArray()
+                }
+            }
+            this.clickMoveDown.onmousedown = function (e) {
+                console.log("下移")
+                nowDirection = DIRECTION.DOWN
+                if (!checkDown()) {
+                    removeBoxArray()
+                    coorY++
+                    drawBoxArray()
+                }
+
+
+            }
+
+
+
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+    <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+    <title>05游戏-黑白棋子</title>
+    <style lang="scss" scoped>
+        html {
+            font-size: 14px
+        }
+        body { -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none; } 
+        /* 所有标签的内外边距清零 */
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        /* em 和 i 斜体的文字不倾斜 */
+        em,
+        i {
+            font-style: normal
+        }
+
+        /* 去掉li 的小圆点 */
+        li {
+            list-style: none
+        }
+
+        img {
+            /* border 0 照顾低版本浏览器 如果 图片外面包含了链接会有边框的问题 */
+            border: 0;
+            /* 取消图片底侧有空白缝隙的问题 */
+            vertical-align: middle
+        }
+
+        button {
+            /* 当我们鼠标经过button 按钮的时候，鼠标变成小手 */
+            cursor: pointer
+        }
+
+        a {
+            color: #666;
+            text-decoration: none
+        }
+
+        a:hover {
+            color: #c81623
+        }
+
+        button,
+        input {
+            /* "\5B8B\4F53" 就是宋体的意思 这样浏览器兼容性比较好 */
+            font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif
+        }
+
+        body {
+            /* CSS3 抗锯齿形 让文字显示的更加清晰 */
+            -webkit-font-smoothing: antialiased;
+            background-color: #fff;
+            font: 12px/1.5 Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif;
+            color: #666
+        }
+
+        .hide,
+        .none {
+            display: none
+        }
+
+        /* 清除浮动 */
+        .clearfix:after {
+            visibility: hidden;
+            clear: both;
+            display: block;
+            content: ".";
+            height: 0
+        }
+
+
+        .content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* justify-content: center;
+            align-items: center; */
+            min-width: 400px;
+
+
+        }
+
+        .box-rules {
+            font-size: 1.2rem;
+            padding: 3rem 0 0 3rem;
+
+        }
+
+        .rules-title {
+           
+            color: black;
+            font-weight: 900;
+
+
+        }
+
+        .box-tab {
+            margin-top: 2rem;
+            display: flex;
+            padding: 3rem 0 0 3rem;
+        }
+
+        #tab {
+
+            display: flex;
+            /* margin-left: 10rem; */
+        }
+
+        .tab_item {
+
+            border-radius: 0.5rem;
+            padding: 0.2rem;
+            border: 0.1rem solid #cccc;
+            cursor: pointer;
+
+        }
+
+        .m-lr10 {
+            margin: 0 1rem;
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+        }
+
+        .pd20 {
+            padding: .5rem 1rem;
+        }
+
+        .box-chess {
+            margin-top: 3rem;
+            padding: 2rem 0rem;
+            width: 100%;
+            border: 0.1rem solid #ccc;
+            background-color: #ffd79c;
+            border-radius: 0.5rem;
+            text-align: center;
+
+        }
+
+        .chess-item-cur {
+            display: inline-block;
+            width: 3rem;
+            height: 3rem;
+            line-height: 3rem;
+            font-size: 0.8rem;
+            vertical-align: middle;
+            margin: 0.5rem 0.2rem;
+            border-radius: 1.6rem;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+
+        }
+
+        .chess-item-none {
+            border: 2px dotted rgb(238, 238, 238);
+        }
+
+        .chess-item-black {
+            background: rgb(51, 51, 51);
+            border: 2px solid transparent;
+            box-shadow: rgb(102, 102, 102) 0px 0px 3px;
+            opacity: 1;
+        }
+
+        .chess-item-white {
+            background: rgb(238, 238, 238);
+            user-select: none;
+            border: 2px solid transparent;
+            box-shadow: rgb(102, 102, 102) 0px 0px 3px;
+            opacity: 1;
+        }
+        .font12 {
+            font-size: 1.2rem;
+        }
+        .font14 {
+            font-size: 1.4rem;
+        }
+        .font16 {
+            font-size: 1.6rem;
+        }
+        .font18 {
+            font-size: 1.8rem;
+        }
+        .mt10 {
+            margin-top: 1rem;
+        }
+        .mb10 {
+            margin-bottom: 1rem;
+        }
+
+
+       
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <!-- 规则 -->
+        <div class="box-rules font14">
+            <div class="rules-title font18 mb10">黑白棋子换位游戏</div>
+
+        </div>
+        <!-- 关卡tab -->
+        <div class="box-tab flex font12 ">
+            <div class="">选择难度:</div>
+            <div id="tab">
+
+            </div>
+        </div>
+        <!-- 游戏盘 -->
+        <div class="box-chess">
+            <div class="box-chess-top"></div>
+            <div class="box-chess-bottom">
+               
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    $(function () {
+        createRules();
+        createTab();
+    })
+    function createRules() {
+        let datas = [
+            {
+                txt: '1、游戏开始时，黑白棋子并列摆放，首尾各有两个空位可以使用'
+            },
+            {
+                txt: ' 2、每次移动必须是相邻的两枚棋子，只能将这两枚棋子移动到空位；'
+            },
+            {
+                txt: '3、棋子移动后，原位置形成空位，当棋子中间有空位时，两端的空位不可用；'
+            },
+            {
+                txt: '4、移动棋子必须跳过一些棋子，不可以平移;'
+            },
+            {
+                txt: '5、最终棋子呈现连续的黑白交替排列，游戏结束，换位成功。'
+            },
+
+        ]
+
+        $.each(datas, function (index, value) {
+            $('.box-rules').append('<div >' + value.txt + '</div>')
+
+        });
+
+    }
+    function createTab() {
+
+        // 设置难度
+        let datas = [
+            {
+                id: 4,
+                tabName: '4'
+            },
+            {
+                id: 5,
+                tabName: '5'
+            }
+        ]
+
+
+        // 难度tab栏
+        function show_tab() {
+            var tab_id = 4;
+            $.each(datas, function (index, value) {
+                // 年级列表
+                $('#tab').append('<div class="tab_item m-lr10  pd20" tab_id=' + value.id + ' style="">' + value.tabName + '枚棋子</div>');
+            });
+
+            $('#tab').find('.tab_item').click(function () {
+                tab_id = $(this).attr('tab_id');
+                // console.log(tab_id)  
+                $('#tab').find('.tab_item').css('border', '0.1rem solid #666');
+                $('#tab').find('.tab_item').css('color', '#666');
+                $('#tab').find('.tab_item[tab_id=' + tab_id + ']').css({ 'border': '0.1rem solid red', 'color': 'black' });
+                // showChess(tab_id);
+            });
+
+
+        }
+        show_tab();
+        ($('#tab').find('.tab_item')[0]).click();
+
+        // 棋盘
+        function showChess(chess_tab_item) {
+            // console.log(chess_tab_item);
+            $('.box-chess-top').empty()
+            $('.box-chess-bottom').empty()
+            for (var i = 0; i < 2; i++) {
+                var divs = $('<div class="chess-item chess-item-cur chess-item-none"  ></div>');
+                $('.box-chess-top').append(divs);
+
+            }
+            for (var i = 0; i < chess_tab_item; i++) {
+                var divs = $('<div class="chess-item chess-item-cur chess-item-black"></div>');
+                $('.box-chess-top').append(divs);
+
+            }
+            for (var i = 0; i < chess_tab_item; i++) {
+                var divs = $('<div class="chess-item chess-item-cur chess-item-white" ></div>');
+                $('.box-chess-top').append(divs);
+
+            }
+            for (var i = 0; i < 2; i++) {
+                var divs = $('<div class="chess-item chess-item-cur chess-item-none"  ></div>');
+                $('.box-chess-top').append(divs);
+
+            }
+          
+
+            $.each($('.chess-item'), function (index, value) {
+                var divs = $('<div class="num-item chess-item-cur"  style="margin:0 .35rem;text-align:center"><span style="color:#888888;"></span></div>');
+                $('.box-chess-bottom').append(divs);
+                $(divs).find('span').text((index + 1) >= 10 ? (index + 1) : ('0' + (index + 1)));
+            });
+
+        }
+
+    }
+</script>
+
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>js_软键盘</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+	<!-- <script type="text/javascript" src="js/keyboard-230715.js"></script> -->
+	<script type="text/javascript" src="js/keyboard-230715.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <link rel="stylesheet" type="text/css" href="./css/keyboard.css">
+</head>
+
+<body style="background:transparent;">
+	
+	
+</body>
+<script type="text/javascript">
+
+$('body').append('<div id="main_div" style="position:absolute;width:60rem;height:36rem;left:0;right:0;top:0;bottom:0;margin:auto;"></div>');
+$('#main_div').append('<div style="text-align:center;line-height:4rem;">这是个标题</div>');
+var table=$('<table border=0 rules=all style="background:#ffffff;"></table>');
+$('#main_div').append(table);
+for(let i=0;i<10;i++){
+	var trs=$('<tr style="height:4rem;"></tr>');
+	$(table).append(trs);
+	for(let j=0;j<10;j++){
+		$(trs).append('<td style="background:#ffffff;"><input style="width:5rem;height:1.5rem;"></td>');
+	}
+}
+
+$('input').click(function(){
+	//ctrKeyboard($(this));
+	_keyboard.show($(this),function(){
+		console.log('123');
+	});
+});
+	
+</script>
+</html>

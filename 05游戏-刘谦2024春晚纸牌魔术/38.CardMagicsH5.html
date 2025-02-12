@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+<script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+<title>业余练习</title>
+<style>
+.rs-css {display:inline-block;min-width:2.5rem;text-align:center;height:1.2rem;line-height:1.2rem;margin:0.2rem 0.5rem 0.2rem 0;padding:0.5rem 0.5rem;border:1px solid #e0e0e0;border-radius:0.2rem;color:#aaaaaa;user-select:none;cursor:pointer;}
+.step_item {padding-bottom:0.2rem;padding-left:4rem;position:relative;cursor:pointer;}
+</style>
+</head>
+<body>
+<div id="content" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;overflow:hidden;user-select:none;">
+<table border=0 rules=none style="width:100%;height:100%;font-size:1rem;margin:0;text-align:center;" cellspacing=0 cellpadding=0>
+	<tr style="height:50%;background:white;"><td class="memo" style="position:relative;">
+	<div style="width:90%;line-height:4rem;text-align:left;margin:auto;font-size:1.6rem;">刘谦2024春晚纸牌魔术</div>
+	<div style="width:90%;text-align:left;margin:auto;font-size:1rem;color:#888888;line-height:1.5rem;">
+		<div class="step_item">随机取 4 张牌，可以任意打乱顺序；</div>
+		<div class="step_item">上下对折，平均撕成两份；</div>
+		<div class="step_item">将两截牌叠在一起；</div>
+		<div class="step_item">从上面将名字对应字数的牌依次移至下面；</div>
+		<div class="step_item">从上面数 3 张牌，插入在中间任意位置；</div>
+		<div class="step_item">取出最上面的牌，放置在藏牌区；</div>
+		<div class="step_item">根据你的地域，从上面将对应的张数的牌插入中间；<br>（南方人1，北方人2，不确定3）</div>
+		<div class="step_item">根据你的性别，男生扔掉上面 1 张牌，女生扔掉上面 2 张牌；</div>
+		<div class="step_item">执行“见证奇迹的时刻”循环，每说一个字，取上面一张牌放置在下面；</div>
+		<div class="step_item">好运留下来，从上面取 1 张牌放到下面，烦恼扔出去，从上面取 1 张牌扔掉，重复直到只剩 1 张牌；</div>
+		<div class="step_item">检查最后一张牌和放置在一旁的牌是否吻合，若吻合，则魔术成功。</div>	
+	</div>
+	<div class="setp_cover" style="position:absolute;left:0;right:0;top:0;bottom:0;margin:0;"></div>
+	</td></tr>
+	<tr style="background:white;">
+		<td style="position:relative;">
+		<div style="position:absolute;left:0;top:0;bottom:0;right:0;margin:0;">
+			<div class="main" style="width:100%;height:8rem;margin:0;position:relative;"></div>
+			<div class="secret_area" style="display:none;position:absolute;width:4rem;height:3rem;line-height:3rem;left:0;right:0;top:8rem;margin:auto;color:#a0a0a0;">藏牌区</div>	
+		</div>
+		</td>
+	</tr>
+	</table>
+</div>
+<div class="next_setp" style="position:absolute;width:8rem;height:3rem;line-height:3rem;left:0;right:0;bottom:1rem;margin:auto;text-align:center;background:darkorange;color:white;border-radius:0.5rem;cursor:pointer;user-select:none;">开　始</div>
+	
+ </body>
+ </html>
+ 
+<script type="text/javascript">
+	(function (doc, win) {
+	  var docEl = win.document.documentElement;
+	  var resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize';
+	  /**
+		* ================================================
+		*   设置根元素font-size
+		* 当设备宽度为375(iPhone6)时，根元素font-size=16px; 
+		× ================================================
+		*/
+	  var refreshRem = function () {
+		var clientWidth = win.innerWidth
+						  || doc.documentElement.clientWidth
+						  || doc.body.clientWidth;
+		var clientHeight = win.innerHeight
+						  || doc.documentElement.clientHeight
+						  || doc.body.clientHeight;
+
+		
+		$('.cover').remove();
+		if (clientWidth>clientHeight) {
+			$('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+			ShowHint('请在竖屏环境下体验！');				
+			return;
+		}
+		
+		//console.log(clientWidth)
+		if (!clientWidth) return;
+		var fz;
+		var Width = clientWidth;
+		fz = 16 * Width / 500;
+		docEl.style.fontSize = fz + 'px';
+	  };
+
+	  if (!doc.addEventListener) return;
+	  win.addEventListener(resizeEvt, refreshRem, false);
+	  doc.addEventListener('DOMContentLoaded', refreshRem, false);
+	  refreshRem();
+
+	})(document, window);	
+	
+	function remvalue()	{
+		var remstr=window.getComputedStyle(document.documentElement)["fontSize"];
+		remstr=remstr.substring(remstr,remstr.length-2);
+		return remstr*1.0;
+	}
+	
+	console.log('remvalue()='+remvalue());
+	
+	var play_moving=0;
+	
+	var step_index=1;
+	var mt=null;
+	var cards_lib=[];	
+	var init_cards=[];
+	var main1_cards=[];
+	var main2_cards=[];
+	var main3_cards=[];
+	var auto_step_show=false;
+	var main_width=$('.main').width();
+	var card_height=5*remvalue();
+	var card_width=parseInt(card_height*105/150);
+	var card_x=parseInt(card_width*1.1);
+	
+	for(var i=0;i<52;i++){
+		var t=parseInt(i/13);
+		var n=i%13+1;
+		n=n>=10?n:('0'+n);
+		cards_lib.push(['A','B','C','D'][t]+n);
+	}
+	
+	$.each($('.step_item'),function(index,value){			
+		$(value).attr('index',index+1);
+		$(value).attr('state',0);
+		$(value).append('<div style="position:absolute;left:0;top:0;bottom:0;margin:auto;">步骤'+(index+1)+'：</div>');		
+	});
+	
+	$('.step_item').mouseover(function(){	
+		$(this).css('background','#f0f0f0');
+	});
+	$('.step_item').mouseout(function(){	
+		$(this).css('background','transparent');
+	});
+	
+	$('.next_setp').click(function(){
+		if($(this).text()=='开　始') $(this).text('下一步');
+		if($('.step_item[state=0]').length==0) return;
+		$($('.step_item[state=0]')[0]).click();
+	});
+	
+	$('.step_item[index=1]').click(function(){			
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		for(var i=0;i<4;i++){
+			var x=parseInt(Math.random()*(52-i));
+			init_cards.push(cards_lib[x]);
+			cards_lib.splice(x,1);	
+			
+			var obj={};
+			obj.index=init_cards[i];
+			obj.part=1;
+			obj.top=2*remvalue();
+			obj.border=0;
+			main1_cards.push(obj);
+			var obj={};
+			obj.index=init_cards[i];
+			obj.part=2;
+			obj.top=2*remvalue()+card_height/2;
+			obj.border=0;
+			main2_cards.push(obj);
+		}
+		draw_cards();			
+	});
+	
+	
+	$('.step_item[index=2]').click(function(){	
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) $(p).click();
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		$.each(main1_cards,function(index,value){
+			value.border=1;			
+		});
+		
+		$.each(main2_cards,function(index,value){
+			value.top=value.top+remvalue();	
+			value.border=1;			
+		});
+		refresh_cards();
+	});
+	
+	$('.step_item[index=3]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) $(p).click();
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		$.each(main2_cards,function(index,value){
+			value.top=2*remvalue();
+			main1_cards.push(value);
+		});
+		
+		main2_cards=[];
+		refresh_cards();
+	});	
+	
+	$('.step_item[index=4]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) $(p).click();
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		$('body').append('<div class="cover" style="position:fixed;z-index:3000;left: 0;right:0;top: 0;bottom:0;z-index:999999;background:rgba(0,0,0,0.7);user-select:none;"></div>');
+		$('.cover').append('<div class="cover_content" style="position:absolute;width:20rem;height:12rem;margin:auto;top:0;bottom:40%;left:0;right:0;text-align:center;box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.3);border-radius:0.5rem;background:#ffffff;"></div>');		
+		$('.cover_content').append('<div style="height:5rem;line-height:5rem;">你的名字共几个字？</div>');
+	
+		for(var i=2;i<=4;i++){
+			$('.cover_content').append('<div class="cover_item" index='+i+' style="display:inline-block;width:4rem;height:3rem;line-height:3rem;background:#f0f0f0;border:1px solid #e0e0e0;margin:0.5rem;border-radius:0.5rem;cursor:pointer;">'+i+'</div>');
+		}
+		
+		$('.cover_content').find('.cover_item').mouseover(function(){
+			$(this).css('border','1px solid red');
+		});
+			
+		$('.cover_content').find('.cover_item').mouseout(function(){
+			$(this).css('border','1px solid #e0e0e0');
+		});
+		
+		$('.cover_content').find('.cover_item').click(function(){
+			var n=$(this).attr('index');
+			for(var i=0;i<parseInt(n);i++){
+				main1_cards.push(main1_cards[0]); 
+				main1_cards.splice(0, 1);
+			}
+			$('.cover').remove();
+			refresh_cards();
+		});
+		
+	});	
+	
+	$('.step_item[index=5]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) return;
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		var temp_cards=main1_cards;
+		var x=parseInt(Math.random()*(temp_cards.length - 5));
+		
+		main1_cards=[];
+		for(var i=3;i<=3+x;i++){
+			main1_cards.push(temp_cards[i]);
+		}
+		for(var i=0;i<3;i++){
+			main1_cards.push(temp_cards[i]);
+		}
+		for(var i=4+x;i<temp_cards.length;i++){
+			main1_cards.push(temp_cards[i]);
+		}
+		//console.log('main1_cards='+JSON.stringify(main1_cards));
+		refresh_cards();
+	});		
+
+	$('.step_item[index=6]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) return;
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		var value=main1_cards[0];
+		value.top=12*remvalue();
+		main3_cards.push(value);
+		main1_cards.splice(0, 1);
+		
+		refresh_cards();
+	});	
+	
+	$('.step_item[index=7]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) return;
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		$('body').append('<div class="cover" style="position:fixed;z-index:3000;left: 0;right:0;top: 0;bottom:0;z-index:999999;background:rgba(0,0,0,0.7);user-select:none;"></div>');
+		$('.cover').append('<div class="cover_content" style="position:absolute;width:20rem;height:12rem;margin:auto;top:0;bottom:40%;left:0;right:0;text-align:center;box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.3);border-radius:0.5rem;background:#ffffff;"></div>');		
+		$('.cover_content').append('<div style="height:5rem;line-height:5rem;">你是哪里人？</div>');
+		var areas=['南方人','北方人','不确定'];
+		$.each(areas,function(index,value){
+			$('.cover_content').append('<div class="cover_item" index='+(index+1)+' style="display:inline-block;width:4rem;height:3rem;line-height:3rem;background:#f0f0f0;border:1px solid #e0e0e0;margin:0.5rem;border-radius:0.5rem;cursor:pointer;">'+value+'</div>');
+		});
+		
+		$('.cover_content').find('.cover_item').mouseover(function(){
+			$(this).css('border','1px solid red');
+		});
+			
+		$('.cover_content').find('.cover_item').mouseout(function(){
+			$(this).css('border','1px solid #e0e0e0');
+		});
+		
+		$('.cover_content').find('.cover_item').click(function(){
+			var n=$(this).attr('index');
+			var temp_cards=main1_cards;
+			var n=parseInt(n);
+			var x=parseInt(Math.random()*(temp_cards.length - 5));
+			
+			main1_cards=[];
+			for(var i=n;i<=n+x;i++){
+				main1_cards.push(temp_cards[i]);
+			}
+			for(var i=0;i<n;i++){
+				main1_cards.push(temp_cards[i]);
+			}
+			for(var i=(n+1)+x;i<temp_cards.length;i++){
+				main1_cards.push(temp_cards[i]);
+			}
+			$('.cover').remove();
+			//console.log('main1_cards='+JSON.stringify(main1_cards));
+			refresh_cards();
+		});
+		
+	});	
+	
+	$('.step_item[index=8]').click(function(){
+
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) return;
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		$(this).css('color','red');
+		$(this).attr('state',1);
+		
+		$('body').append('<div class="cover" style="position:fixed;z-index:3000;left: 0;right:0;top: 0;bottom:0;z-index:999999;background:rgba(0,0,0,0.7);user-select:none;"></div>');
+		$('.cover').append('<div class="cover_content" style="position:absolute;width:20rem;height:12rem;margin:auto;top:0;bottom:40%;left:0;right:0;text-align:center;box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.3);border-radius:0.5rem;background:#ffffff;"></div>');		
+		$('.cover_content').append('<div style="height:5rem;line-height:5rem;">你的性别是？</div>');
+		var areas=['男','女'];
+		$.each(areas,function(index,value){
+			$('.cover_content').append('<div class="cover_item" index='+(index+1)+' style="display:inline-block;width:4rem;height:3rem;line-height:3rem;background:#f0f0f0;border:1px solid #e0e0e0;margin:0.5rem;border-radius:0.5rem;cursor:pointer;">'+value+'</div>');
+		});
+		
+		$('.cover_content').find('.cover_item').mouseover(function(){
+			$(this).css('border','1px solid red');
+		});
+			
+		$('.cover_content').find('.cover_item').mouseout(function(){
+			$(this).css('border','1px solid #e0e0e0');
+		});
+		
+		$('.cover_content').find('.cover_item').click(function(){
+			var n=$(this).attr('index');
+			console.log(n)
+			for(var i=0;i<parseInt(n);i++){
+				$('.card_item[index="'+main1_cards[0].index+main1_cards[0].part+'"]').hide();
+				main1_cards.splice(0, 1);
+			}
+			$('.cover').remove();
+			// //console.log('main1_cards='+JSON.stringify(main1_cards));
+			refresh_cards();
+		});
+		
+	});	
+	
+	$('.step_item[index=9]').attr('step',0);
+	
+	$('.step_item[index=9]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) return;
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		
+		var step=$(this).attr('step');
+		if(step==6) {
+			$(this).css('color','red');
+			$(this).attr('state',1);
+		}
+		$(this).attr('step',parseInt(step)+1);
+		
+		var s='见证奇迹的时刻';
+		ShowHint(s.substring(parseInt(step),parseInt(step)+1));
+		main1_cards.push(main1_cards[0]); 
+		main1_cards.splice(0, 1);
+		
+		refresh_cards();
+	});	
+	
+	$('.step_item[index=10]').attr('step',0);
+	
+	$('.step_item[index=10]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) return;
+		
+		var state=$(this).attr('state');
+		if(state==1) return;
+		
+		
+		var step=$(this).attr('step');
+		if(step==0){
+			ShowHint('好运留下来');
+			main1_cards.push(main1_cards[0]); 
+			main1_cards.splice(0, 1);
+			$(this).attr('step',1);
+		}
+		else {		
+			ShowHint('烦恼扔出去');
+			$('.card_item[index="'+main1_cards[0].index+main1_cards[0].part+'"]').hide();
+			main1_cards.splice(0, 1);			
+			$(this).attr('step',0);
+		}
+				
+		refresh_cards();
+		
+		if(main1_cards.length==1) {
+			$(this).css('color','red');
+			$(this).attr('state',1);			
+		}
+	});	
+	
+	$('.step_item[index=11]').attr('step',0);
+	
+	$('.step_item[index=11]').click(function(){
+		var p=$(this).prev();
+		if($(p).attr('state')!=1) return;
+		
+		var step=$(this).attr('step');
+		if(step==0){
+			var value=main3_cards[0];
+			value.top=3*remvalue()+card_height/2;
+			main2_cards.push(value);
+			main3_cards=[];	
+			refresh_cards();
+			$(this).attr('step',1);
+		}
+		else {		
+			main1_cards[0].border=0;
+			main2_cards[0].border=0;
+			main2_cards[0].top=2*remvalue()+card_height/2;
+			refresh_cards();
+			ShowHint('恭喜你，魔术成功！');
+			$(this).css('color','red');
+			$(this).attr('state',1);	
+			$('.next_setp').text('表演结束');
+			$('.next_setp').css('background','green');
+		}
+		
+	});	
+	
+	function draw_cards(){
+		$('.main').empty();
+		
+		var card_height=5*remvalue();
+		var card_width=parseInt(card_height*105/150);
+		var card_x=parseInt(card_width*1.1);
+		
+		console.log(main1_cards,'main1_cards')
+		$.each(main1_cards,function(index,value){
+			var s=value.index;
+			var divs=$('<div class="card_item" index="'+(value.index+value.part)+'" style="position:absolute;width:'+card_width+'px;height:'+card_height/2+'px;top:1rem;"></div>');
+			$('.main').append(divs);			
+			if(value.part==1){
+				$(divs).css('height',card_height/2);
+				$(divs).css('background','url(http://www.zhibx.net/test/img/cards/'+s+'.jpg) center top no-repeat');
+				$(divs).css('background-size','100% auto');
+			}
+			// if(value.part==2){
+			// 	$(divs).css('height',card_height/2);
+			// 	$(divs).css('background','url(http://www.zhibx.net/test/img/cards/'+s+'.jpg) center bottom no-repeat');
+			// 	$(divs).css('background-size','100% auto');
+			// }
+			
+			var left=(main_width-main1_cards.length*card_x)/2+index*card_x;
+			$(divs).css('top',value.top+'px');
+			$(divs).css('left',left+'px');
+			$(divs).css('transition','all 0.5s ease-in-out');
+		});
+		
+		
+		$.each(main2_cards,function(index,value){
+			var s=value.index;
+			var divs=$('<div class="card_item" index="'+(value.index+value.part)+'" style="position:absolute;width:'+card_width+'px;height:'+card_height/2+'px;"></div>');
+			$('.main').append(divs);
+			
+			if(value.part==1){
+				$(divs).css('height',card_height/2);
+				$(divs).css('background','url(http://www.zhibx.net/test/img/cards/'+s+'.jpg) center top no-repeat');
+				$(divs).css('background-size','100% auto');
+			}
+			// if(value.part==2){
+			// 	$(divs).css('height',card_height/2);
+			// 	$(divs).css('background','url(http://www.zhibx.net/test/img/cards/'+s+'.jpg) center bottom no-repeat');
+			// 	$(divs).css('background-size','100% auto');
+			// }
+			var left=(main_width-main2_cards.length*card_x)/2+index*card_x;
+			$(divs).css('top',value.top+'px');
+			$(divs).css('left',left+'px');
+			$(divs).css('transition','all 0.5s ease-in-out');
+		});
+	}
+
+	function refresh_cards(){
+		$.each(main1_cards,function(index,value){
+			var sIndex=value.index+value.part;
+			var divs=$('.card_item[index="'+sIndex+'"]');
+			
+			$('.card_item').css('z-index',0);
+			$(divs).css('z-index',99);
+			
+			var left=(main_width-main1_cards.length*card_x)/2+index*card_x;
+			$(divs).css('top',value.top);
+			$(divs).css('left',left);
+			if(value.part==1){
+				$(divs).css('border-bottom',value.border+'px solid #c0c0c0');
+			}
+			else {				
+				$(divs).css('border-top',value.border+'px solid #c0c0c0');
+			}
+		});
+		
+		
+		$.each(main2_cards,function(index,value){
+			var sIndex=value.index+value.part;
+			var divs=$('.card_item[index="'+sIndex+'"]');
+			
+			$('.card_item').css('z-index',0);
+			$(divs).css('z-index',99);
+			
+			var left=(main_width-main2_cards.length*card_x)/2+index*card_x;
+			$(divs).css('top',value.top);
+			$(divs).css('left',left);
+			if(value.part==1){
+				$(divs).css('border-bottom',value.border+'px solid #c0c0c0');
+			}
+			else {				
+				$(divs).css('border-top',value.border+'px solid #c0c0c0');
+			}
+		});
+		
+		
+		$.each(main3_cards,function(index,value){
+			var sIndex=value.index+value.part;
+			var divs=$('.card_item[index="'+sIndex+'"]');
+			
+			var left=(main_width-main3_cards.length*card_x)/2+index*card_x;
+			$(divs).css('top',value.top);
+			$(divs).css('left',left);
+			if(value.part==1){
+				$(divs).css('border-bottom',value.border+'px solid #c0c0c0');
+			}
+			else {				
+				$(divs).css('border-top',value.border+'px solid #c0c0c0');
+			}
+		});
+		
+		
+		if(main3_cards.length>0) {
+			$('.secret_area').show();
+		}
+		else {
+			$('.secret_area').hide();
+		}
+	}
+
+
+	var t=null;	
+		
+	function ShowHint(msg){
+		if($('.ShowHint').length>0) {clearInterval(t);$('.ShowHint').remove();}
+		if(msg==undefined) msg='';
+		var sstr ='<div class="ShowHint" style="position:fixed;left:0;right:0;bottom:80;height:2rem;margin:auto;line-height:2rem;padding:0.25rem 0;font-size:1rem;text-align:center;z-index:999999;background:url(img/hint-back-yellow.png) center no-repeat;background-size:auto 100% ;user-select:none;">'+msg+'</div>';
+					
+		$('body').append(sstr); 
+		
+		TimeDelay(200);
+		
+		function TimeDelay(x){
+			
+			$('.ShowHint').attr('delay',x);
+			t=setInterval(function removeReadonly(){
+				var delay=$('.ShowHint').attr('delay');
+				if(delay==null) delay=0;
+				else delay=parseInt(delay);
+				delay--;
+				$('.ShowHint').css('bottom',$('#content').height()/2-60+(160-delay)/2);
+				$('.ShowHint').attr('delay',delay);
+				if(delay>10&&delay<=100) {
+					$('.ShowHint').css('opacity',delay/100);
+					$('.ShowHint').css('filter','(alpha='+delay+');');
+				}
+				if(delay<=10) {
+					clearInterval(t);
+					$('.ShowHint').remove();
+				}
+			},10);
+		}
+	}
+	
+	function getContrastColor(color) {
+		var r = parseInt(color.substring(1,3), 16); // 提取红色分量
+		var g = parseInt(color.substring(3,5), 16); // 提取绿色分量
+		var b = parseInt(color.substring(5,7), 16); // 提取蓝色分量
+		
+		if ((r * 0.299 + g * 0.587 + b * 0.114) > 186) { // 根据亮度判断对比色
+			return '#000'; // 返回深色（黑色）作为对比色
+		} else {
+			return '#fff'; // 返回浅色（白色）作为对比色
+		}
+	}
+</script>

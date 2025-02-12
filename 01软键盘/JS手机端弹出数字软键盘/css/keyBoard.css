@@ -1,0 +1,86 @@
+.mask{
+    display: none;
+    position: absolute;
+    top:0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 9998;
+}
+.key-main{
+    display: none;
+    background-color: #696969;
+    position:fixed; 
+    left:0px; 
+    bottom:0px; 
+    width:100%; 
+    padding: 5px;
+    z-index:9999;
+    user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+}
+.key-main.show{
+    animation: show 0.5s;
+}
+.key-main.hide{
+    animation: hide 0.5s;
+}
+@keyframes show{
+    0%{bottom: -50%;opacity: 0.5;}
+    100%{bottom: 0;opacity: 1;}
+}
+@-webkit-keyframes show{
+    0%{bottom: -50%;opacity: 0.5;}
+    100%{bottom: 0;opacity: 1;}
+}
+@-moz-keyframes show{
+    0%{bottom: -50%;opacity: 0.5;}
+    100%{bottom: 0;opacity: 1;}
+}
+@keyframes hide{
+    0%{bottom: 0;opacity: 1;}
+    100%{bottom: -50%;opacity: 0.5;}
+}
+@-webkit-keyframes hide{
+    0%{bottom: 0;opacity: 1;}
+    100%{bottom: -50%;opacity: 0.5;}
+}
+@-moz-keyframes hide{
+    0%{bottom: 0;opacity: 1;}
+    100%{bottom: -50%;opacity: 0.5;}
+}
+.key-main table{
+    width: calc(100% - 10px);
+    height: 100%;
+}
+.key-main tr{
+    width: 100%;
+    height: calc(100% / 5);
+    text-align: center;
+}
+.key-main .btn{
+    background-color: #fff;
+    color: #000;
+    margin: 5px;
+    padding: 5px;
+    border-radius: 10px;
+    height: 85%;
+    font-size: 3rem;
+}
+.key-main .btn:active{
+    background-color: #4abfa2;
+    color: #fff;
+}
+
+.key-main .btn [class^="iconfont"] {
+    font-size: 4rem;
+    color: #4abfa2;
+}
+.key-main .clear.btn{
+    color: #4abfa2;
+}
+.key-main .clear.btn:active,
+.key-main .btn:active [class^="iconfont"] {
+    color: #fff;
+}

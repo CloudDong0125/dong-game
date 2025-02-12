@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+<script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+<title>汉诺塔游戏</title>
+<style>
+.rs-css {display:inline-block;min-width:2.5rem;text-align:center;height:1.2rem;line-height:1.2rem;margin:0.2rem 0.5rem 0.2rem 0;padding:0.5rem 0.5rem;border:1px solid #e0e0e0;border-radius:0.2rem;color:#aaaaaa;user-select:none;cursor:pointer;}
+
+</style>
+</head>
+<body>
+<div id="content" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;overflow:hidden;user-select:none;">
+<table border=0 rules=none style="width:100%;height:100%;font-size:1rem;margin:0;text-align:center;" cellspacing=0 cellpadding=0>
+	<tr style="height:30%;background:white;"><td class="memo">
+	<div style="width:80%;text-align:left;margin:auto;font-size:1.6rem;">汉诺塔游戏</div>
+	<div style="width:80%;text-align:left;margin:0.5rem auto;font-size:0.8rem;color:#888888;line-height:1.5rem;">
+	1、游戏开始时，有ABC三根柱子，左侧柱子上放置从小到大的圆盘；<br>
+	2、先点击A，再点击B，表示要把A柱子最上面的圆盘移到B柱子上；<br>
+	3、每次只能移动一个圆盘，且在移动过程中，小圆盘必须在大圆盘上面；<br>
+	4、游戏的目标是将所有圆盘从A柱移动到C柱，并且从小到大叠放。<br>
+	</div>
+	</td></tr>
+	<tr style="height:4rem;background:white;"><td style="vertical-align:top;"><div class="count" style="display:inline-block;width:80%;text-align:left;margin:auto;"></div></td></tr>
+	<tr style="background:white;"><td style="position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;right:0;margin:0;"><div class="main" style="width:100%;height:100%;position:relative;"></div></div></td></tr>
+	<tr style="height:4rem;"><td class="index" style="position:relative;background:url(wood_back_little.jpg) center no-repeat;background:cover;"></td></tr>
+</div>
+ </body>
+ </html>
+ 
+<script type="text/javascript">
+	(function (doc, win) {
+	  var docEl = win.document.documentElement;
+	  var resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize';
+	  /**
+		* ================================================
+		*   设置根元素font-size
+		* 当设备宽度为375(iPhone6)时，根元素font-size=16px; 
+		× ================================================
+		*/
+	  var refreshRem = function () {
+		var clientWidth = win.innerWidth
+						  || doc.documentElement.clientWidth
+						  || doc.body.clientWidth;
+		var clientHeight = win.innerHeight
+						  || doc.documentElement.clientHeight
+						  || doc.body.clientHeight;
+
+		$('.cover').remove();
+		if (clientWidth<clientHeight) {
+			$('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+			ShowHint('请在横屏环境下体验！');				
+			return;
+		}
+		//console.log(clientWidth)
+		if (!clientWidth) return;
+		var fz;
+		var Width = clientWidth;
+		fz = 16 * Width / 1200;
+		docEl.style.fontSize = fz + 'px';
+	  };
+
+	  if (!doc.addEventListener) return;
+	  win.addEventListener(resizeEvt, refreshRem, false);
+	  doc.addEventListener('DOMContentLoaded', refreshRem, false);
+	  refreshRem();
+
+	})(document, window);	
+	
+	function remvalue()	{
+		var remstr=window.getComputedStyle(document.documentElement)["fontSize"];
+		remstr=remstr.substring(remstr,remstr.length-2);
+		return remstr*1.0;
+	}
+	
+	console.log('remvalue()='+remvalue());
+	
+	var play_moving=0;
+	
+	var color_init=['#dc3545', '#ffc107', '#007bff', '#28a745', '#20c997', '#800080', '#17a2b8', '#92d1ea'];
+	var pole_datas=[[],[],[]];
+	var dish_count=0;
+	var mt=null;	
+	var auto_steps=[];
+	var auto_step_show=false;
+	
+	$('.count').append('<div style="display:inline-block;height:1.2rem;line-height:1.2rem;margin:auto;color:#888888;">选择难度：</div>');
+	for(var i=3;i<=6;i++){
+		$('.count').append('<div index='+i+' class="rs-css" >'+i+' 个盘子</div>');
+	}
+	$('.count').append('<div class="answer" style="display:inline-block;height:1.2rem;line-height:1.2rem;font-size:0.8rem;margin:0.5rem;color:#c0c0c0;user-select:none;cursor:pointer;">偷看答案</div>');
+			
+	
+	$('.rs-css').click(function(){
+		$(this).parent().find('.rs-css').css('border','');
+		$(this).parent().find('.rs-css').css('color','');
+		$(this).parent().find('.rs-css').attr('state',0);
+		$(this).css('border','1px solid red');			
+		$(this).css('color','black');		
+		$(this).attr('state',1);
+		var n=$(this).attr('index');
+		
+		dish_count=parseInt(n);
+		
+		init_tower(dish_count);
+	});	
+	
+	function auto_step(n, a, b, c){
+         if (n == 1){
+			 console.log("num: " + n + " from " + a + " to " + c);
+			 var obj={};
+			 obj.id=auto_steps.length+1;
+			 obj.p1=['A','B','C'].indexOf(a);			 
+			 obj.p2=['A','B','C'].indexOf(c);
+			 auto_steps.push(obj);
+		 }else {
+			 auto_step(n - 1, a, c, b);
+			 console.log("num: " + n + " from " + a + " to " + c);				 
+			 var obj={};
+			 obj.id=auto_steps.length+1;
+			 obj.p1=['A','B','C'].indexOf(a);			 
+			 obj.p2=['A','B','C'].indexOf(c);
+			 auto_steps.push(obj);
+			 auto_step(n - 1, b, a, c);
+		 }
+	}
+	
+	$('.rs-css[index=3]').click();
+		
+	
+	function init_tower(){
+		$('.main').empty();	
+		$('.index').empty();
+		play_moving=0;
+		
+		for(var i=0;i<=2;i++){
+			pole_datas[i]=[];
+			var divs=$('<div class="pole_item" index='+i+' style="position:absolute;width:1rem;height:70%;left:'+((i+1)*30 - 10)+'%;bottom:0;background:#a0a0a0;border:1px solid #909090;border-radius:0.2rem 0.2rem 0 0;cursor:pointer;"></div>');
+			$('.main').append(divs);
+			var divs=$('<div class="index_item" state=0 index='+i+' style="position:absolute;width:4rem;height:2rem;line-height:2rem;text-align:center;font-size:1.5rem;left:calc('+((i+1)*30 - 10)+'% - 1.5rem);bottom:1rem;border-radius:0.2rem;border:2px solid transparent;cursor:pointer;">'+['A','B','C'][i]+'</div>');
+			$('.index').append(divs);
+		}
+		var pos=$('.pole_item[index=0]').position();
+		pos.height=$('.pole_item[index=0]').height();		
+		pos.bottom=pos.top+pos.height;
+		console.log(pos);
+		
+		for(var i=0;i<dish_count;i++){
+			var w=(4+(i+1)*2)*remvalue();
+			var x=pos.left - w/2 + 0.5*remvalue();
+			var y=$('.main').height() - (dish_count - i)*2*remvalue();
+			var c=color_init[i];
+			
+			var divs=$('<div class="dish_item" index='+i+' pole=0 style="position:absolute;height:1.5rem;line-height:1.5rem;font-size:0.8rem;margin:0;padding:0;color:white;background:'+c+';border-radius:0.2rem;cursor:pointer;">'+(i+1)+'</div>');
+			$('.main').append(divs);
+			$(divs).css('width',w/remvalue()+'rem');
+			$(divs).css('left',x/remvalue()+'rem');
+			$(divs).css('top',y/remvalue()+'rem');
+			pole_datas[0].unshift(i);
+		}
+		
+		console.log(pole_datas+'='+JSON.stringify(pole_datas));
+		
+		$('.index_item').mouseover(function(){
+			$(this).css('background','wheat');
+		});
+		
+		$('.index_item').mouseout(function(){
+			$(this).css('background','transparent');
+		});
+		
+		$('.index_item').click(function(){
+			if(play_moving>0) return;
+			if($(this).attr('state')!=0) return;
+			var pole_index=$(this).attr('index');
+			if($('.index_item[state=1]').length==0){
+				if(pole_datas[pole_index].length>0){
+					$(this).css('border','2px solid red');
+					$(this).attr('state',1);
+					$('.pole_item[index='+pole_index+']').css('border','1px solid red');
+					
+					$('.dish_item').css('box-shadow','');					
+					var d1=pole_datas[pole_index][pole_datas[pole_index].length-1];
+					$('.dish_item[index='+d1+']').css('box-shadow','0 0 3px #666666');
+				}
+				return;
+			}
+			else {
+				$('.index_item[state=2]').css('border','2px solid transparent');
+				$('.index_item[state=2]').attr('state',0);
+				$(this).css('border','2px solid green');
+				$(this).attr('state',2);
+				$('.pole_item[index='+pole_index+']').css('border','1px solid green');
+			}
+			
+			var from_pole=$('.index_item[state=1]').attr('index');
+			var to_pole=$('.index_item[state=2]').attr('index');
+			
+			move_dish(from_pole,to_pole);
+		});
+		
+		$('.pole_item').click(function(){
+			var pole_index=$(this).attr('index');
+			$('.index_item[index='+pole_index+']').click();
+		});
+		
+		$('.dish_item').click(function(){
+			var pole_index=$(this).attr('pole');
+			$('.index_item[index='+pole_index+']').click();
+		});
+		
+		check_success();
+				
+		$('.answer').unbind("click").bind("click",function(){			
+			var n=parseInt($('.rs-css[state=1]').attr('index'));
+			init_tower(n);
+			$('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+			ShowHint('开始演示，注意认真观看！');
+				
+			auto_steps=[];
+			auto_step(n,'A','B','C');
+			console.log('auto_steps='+JSON.stringify(auto_steps));
+			auto_step_show=true;
+			
+			$('.index_item[index='+auto_steps[0].p1+']').click();
+			
+			setTimeout(function() { //延时
+                $('.index_item[index='+auto_steps[0].p2+']').click();
+            }, 500);
+		});			
+			
+	}
+	
+
+	
+	function move_dish(p1,p2){
+				
+		console.log(['A','B','C'][parseInt(p1)]+' → '+['A','B','C'][parseInt(p2)]);	
+		var d1=pole_datas[p1][pole_datas[p1].length-1];
+		var d2=99;
+		if(pole_datas[p2].length>0) d2=pole_datas[p2][pole_datas[p2].length-1];
+		
+		
+		//console.log(d1);
+		//console.log(d2);
+		
+		if(d1>d2){
+			ShowHint('大圆盘不能放置在小圆盘上面！');
+			$('.index_item').css('border','2px solid transparent');
+			$('.index_item').attr('state',0);
+			$('.pole_item').css('border','1px solid #c0c0c0');
+			$('.dish_item[index='+d1+']').css('box-shadow','');
+			return;
+		}
+		
+		var pos=$('.pole_item[index='+p2+']').position();
+		var w=(4+(dish_count-d1)*2)*remvalue();
+		var x=pos.left - w/2 + 0.5*remvalue();
+		var y=pole_datas[p2].length*2*remvalue()+ 0.5*remvalue();
+		
+		//$('.dish_item[index='+d1+']').css('left',x/remvalue()+'rem');
+		//$('.dish_item[index='+d1+']').css('bottom',y/remvalue()+'rem');
+		
+		pole_datas[p1].pop();
+		pole_datas[p2].push(d1);
+		
+		$('.dish_item[index='+d1+']').attr('pole',p2);
+		
+		
+		var point1=$('.pole_item[index='+p1+']').position();
+		point1.height=$('.pole_item[index='+p1+']').height();
+		point1.maxtop=point1.top - 2*remvalue();
+		var point2=$('.pole_item[index='+p2+']').position();
+		point2.left=point2.left-$('.dish_item[index='+d1+']').width()/2+0.5*remvalue();
+		point2.height=$('.pole_item[index='+p2+']').height();
+		point2.maxtop=$('.main').height() - pole_datas[p2].length*2*remvalue();
+		
+		play_moving=1;
+		var stp=10;
+		
+		mt=setInterval(function removeReadonly(){
+			var dish_pos=$('.dish_item[index='+d1+']').position();
+			//console.log(dish_pos);
+			if(play_moving==1){
+				dish_pos.top=dish_pos.top - stp;				
+			
+				if(dish_pos.top<point1.maxtop) {
+					dish_pos.top=point1.maxtop;
+					play_moving=2;
+				}
+				$('.dish_item[index='+d1+']').css('top',dish_pos.top/remvalue()+'rem');
+				
+				return;
+			}
+			
+			if(play_moving==2) {
+			
+				if(p1<p2){
+					dish_pos.left=dish_pos.left + stp;
+					
+					if(dish_pos.left>point2.left) {
+						dish_pos.left=point2.left;
+						play_moving=3;					
+					}
+				}
+				else {
+					dish_pos.left=dish_pos.left - stp;
+					
+					if(dish_pos.left<point2.left) {
+						dish_pos.left=point2.left;
+						play_moving=3;					
+					}
+				}
+				
+				$('.dish_item[index='+d1+']').css('left',dish_pos.left/remvalue()+'rem');
+				return;
+			}
+			if(play_moving==3) {
+				dish_pos.top=dish_pos.top + stp;
+				
+				if(dish_pos.top>point2.maxtop) {
+					dish_pos.top=point2.maxtop;
+					play_moving=0;
+					clearInterval(mt);
+					$('.index_item').css('border','2px solid transparent');
+					$('.index_item').attr('state',0);
+					$('.pole_item').css('border','1px solid #909090');
+					$('.dish_item[index='+d1+']').css('box-shadow','');
+					
+					if(auto_step_show){
+						auto_steps.shift();
+						//console.log('auto_steps='+JSON.stringify(auto_steps));
+						if(auto_steps.length>0) {
+							setTimeout(function() { //延时
+								$('.index_item[index='+auto_steps[0].p1+']').click();
+								setTimeout(function() { //延时
+									$('.index_item[index='+auto_steps[0].p2+']').click();
+								}, 500);
+							}, 500);						
+						}
+						else {
+							auto_step_show=false;
+							$('.cover').remove();
+							ShowHint('演示结束！');
+						}
+					}
+				}				
+				$('.dish_item[index='+d1+']').css('top',dish_pos.top/remvalue()+'rem');
+				return;
+			}
+			
+		},10);
+						
+		check_success();	
+	}
+	
+	function check_success(){
+		var n=parseInt($('.rs-css[state=1]').attr('index'));
+		if(pole_datas[2].length==n&&auto_step_show==false){
+			ShowHint('恭喜你，挑战成功！');
+		}		
+	}
+	
+
+	var t=null;	
+		
+	function ShowHint(msg){
+		if($('.ShowHint').length>0) {clearInterval(t);$('.ShowHint').remove();}
+		if(msg==undefined) msg='';
+		var sstr ='<div class="ShowHint" style="position:fixed;left:0;right:0;bottom:80;height:2rem;margin:auto;line-height:2rem;padding:0.25rem 0;font-size:0.8rem;text-align:center;z-index:999999;background:url(img/hint-back-yellow.png) center no-repeat;background-size:auto 100% ;">'+msg+'</div>';
+					
+		$('body').append(sstr); 
+		
+		TimeDelay(200);
+		
+		function TimeDelay(x){
+			
+			$('.ShowHint').attr('delay',x);
+			t=setInterval(function removeReadonly(){
+				var delay=$('.ShowHint').attr('delay');
+				if(delay==null) delay=0;
+				else delay=parseInt(delay);
+				delay--;
+				$('.ShowHint').css('bottom',$('#content').height()/2-60+(160-delay)/2);
+				$('.ShowHint').attr('delay',delay);
+				if(delay>10&&delay<=100) {
+					$('.ShowHint').css('opacity',delay/100);
+					$('.ShowHint').css('filter','(alpha='+delay+');');
+				}
+				if(delay<=10) {
+					clearInterval(t);
+					$('.ShowHint').remove();
+				}
+			},10);
+		}
+	}
+	
+	function getContrastColor(color) {
+		var r = parseInt(color.substring(1,3), 16); // 提取红色分量
+		var g = parseInt(color.substring(3,5), 16); // 提取绿色分量
+		var b = parseInt(color.substring(5,7), 16); // 提取蓝色分量
+		
+		if ((r * 0.299 + g * 0.587 + b * 0.114) > 186) { // 根据亮度判断对比色
+			return '#000'; // 返回深色（黑色）作为对比色
+		} else {
+			return '#fff'; // 返回浅色（白色）作为对比色
+		}
+	}
+</script>

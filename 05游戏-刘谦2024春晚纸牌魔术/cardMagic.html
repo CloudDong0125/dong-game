@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+    <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+    <title>06游戏-刘谦2024春晚纸牌魔术</title>
+    <style lang="scss" scoped>
+        html {
+            font-size: 14px
+        }
+
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* 所有标签的内外边距清零 */
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        /* em 和 i 斜体的文字不倾斜 */
+        em,
+        i {
+            font-style: normal
+        }
+
+        /* 去掉li 的小圆点 */
+        li {
+            list-style: none
+        }
+
+        img {
+            /* border 0 照顾低版本浏览器 如果 图片外面包含了链接会有边框的问题 */
+            border: 0;
+            /* 取消图片底侧有空白缝隙的问题 */
+            vertical-align: middle
+        }
+
+        button {
+            /* 当我们鼠标经过button 按钮的时候，鼠标变成小手 */
+            cursor: pointer
+        }
+
+        a {
+            color: #666;
+            text-decoration: none
+        }
+
+        a:hover {
+            color: #c81623
+        }
+
+        button,
+        input {
+            /* "\5B8B\4F53" 就是宋体的意思 这样浏览器兼容性比较好 */
+            font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif
+        }
+
+        body {
+            /* CSS3 抗锯齿形 让文字显示的更加清晰 */
+            -webkit-font-smoothing: antialiased;
+            background-color: #fff;
+            font: 12px/1.5 Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif;
+            color: #666
+        }
+
+        .hide,
+        .none {
+            display: none
+        }
+
+        .font10 {
+            font-size: 1rem;
+        }
+
+        .font12 {
+            font-size: 1.2rem;
+        }
+
+        .font14 {
+            font-size: 1.4rem;
+        }
+
+        .font16 {
+            font-size: 1.6rem;
+        }
+
+        .font18 {
+            font-size: 1.8rem;
+        }
+
+        .mt10 {
+            margin-top: 1rem;
+        }
+
+        .mb10 {
+            margin-bottom: 1rem;
+        }
+
+        /* 清除浮动 */
+        .clearfix:after {
+            visibility: hidden;
+            clear: both;
+            display: block;
+            content: ".";
+            height: 0
+        }
+
+
+        .content {
+            width: 100%;
+
+
+
+        }
+
+        .box-rules {
+            font-size: 1.2rem;
+            padding: 1rem;
+
+        }
+
+        .rules-title {
+
+            color: black;
+            font-weight: 900;
+
+
+        }
+
+        .box-tab {
+            margin-top: 2rem;
+            display: flex;
+            padding: 3rem 0 0 3rem;
+        }
+
+        #tab {
+
+            display: flex;
+            /* margin-left: 10rem; */
+        }
+
+        .tab_item {
+
+            border-radius: 0.5rem;
+            padding: 0.2rem;
+            border: 0.1rem solid #cccc;
+            cursor: pointer;
+
+        }
+
+        .m-lr10 {
+            margin: 0 1rem;
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+        }
+
+        .pd20 {
+            padding: .5rem 1rem;
+        }
+
+        .box-chess {
+
+            padding: .5rem 0rem;
+            width: 25%;
+            text-align: center;
+            border: 0.1rem solid #ccc;
+
+            background: darkorange;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1.5rem;
+            /* margin: 0% 25%; */
+            position: fixed;
+            bottom: 2%;
+            left: 50%;
+            transform: translate(-50%, 0%);
+
+        }
+
+        .chess-item-cur {
+            display: inline-block;
+            width: 3rem;
+            height: 3rem;
+            line-height: 3rem;
+            font-size: 0.8rem;
+            vertical-align: middle;
+            margin: 0.5rem 0.2rem;
+            border-radius: 1.6rem;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+
+        }
+
+        .chess-item-none {
+            border: 2px dotted rgb(238, 238, 238);
+        }
+
+        .chess-item-black {
+            background: rgb(51, 51, 51);
+            border: 2px solid transparent;
+            box-shadow: rgb(102, 102, 102) 0px 0px 3px;
+            opacity: 1;
+        }
+
+        .chess-item-white {
+            background: rgb(238, 238, 238);
+            user-select: none;
+            border: 2px solid transparent;
+            box-shadow: rgb(102, 102, 102) 0px 0px 3px;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <!-- 规则 -->
+        <div class="box-rules font10">
+            <div class="rules-title font14 mb10">刘谦2024春晚纸牌魔术</div>
+        </div>
+
+        <div class="main" style="width:100%;height:8rem;margin:0;position:relative;">
+
+        </div>
+
+        <div class="secret_area"
+            style="display: flex;justify-content: space-around;justify-content: center;margin-top: 4%;text-align: center;">
+            <div class="secret_area_box" style="display: none;">
+                <div style="margin-bottom: 5%;">藏牌区</div>
+                <!-- <div style="background: url(./img/cards/A01.jpg) center bottom no-repeat;width: 42px;height: 30px;background-size: 100% auto;"></div> -->
+            </div>
+
+        </div>
+
+
+
+        <!-- 游戏盘 -->
+        <div class="box-chess clickStar" step="0" style="">
+            <div class="box-chess-bottom ">开始</div>
+        </div>
+        <div class="box-chess clickNine" step_nine="0" style="display: none;">
+            <div class="box-chess-bottom">见</div>
+        </div>
+        <div class="box-chess clickTen" step_ten="0" style="display: none;">
+            <div class="box-bottom">好运留下来</div>
+        </div>
+    </div>
+</body>
+<script>
+
+    (function (doc, win) {
+        var docEl = win.document.documentElement;
+        var resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize';
+        /**
+          * ================================================
+          *   设置根元素font-size
+          * 当设备宽度为375(iPhone6)时，根元素font-size=16px; 
+          × ================================================
+          */
+        var refreshRem = function () {
+            var clientWidth = win.innerWidth
+                || doc.documentElement.clientWidth
+                || doc.body.clientWidth;
+            var clientHeight = win.innerHeight
+                || doc.documentElement.clientHeight
+                || doc.body.clientHeight;
+
+
+            $('.cover').remove();
+            if (clientWidth > clientHeight) {
+                $('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+                alert('请在竖屏环境下体验！');
+                return;
+            }
+
+            //console.log(clientWidth)
+            if (!clientWidth) return;
+            var fz;
+            var Width = clientWidth;
+            fz = 16 * Width / 500;
+            docEl.style.fontSize = fz + 'px';
+        };
+
+        if (!doc.addEventListener) return;
+        win.addEventListener(resizeEvt, refreshRem, false);
+        doc.addEventListener('DOMContentLoaded', refreshRem, false);
+        refreshRem();
+
+    })(document, window);
+
+    function remvalue() {
+        var remstr = window.getComputedStyle(document.documentElement)["fontSize"];
+        remstr = remstr.substring(remstr, remstr.length - 2);
+        return remstr * 1.0;
+    }
+
+    console.log('remvalue()=' + remvalue());
+
+
+
+    var card_height = 5 * remvalue();
+    var card_width = parseInt(card_height * 105 / 150);
+    var card_x = parseInt(card_width * 1.1);
+    var main_width = $('.main').width();
+    var datas = [];
+    var step = 0;
+
+    var cardsList = [], cardsList4 = [];
+    var cards1_list = [], cards2_list = [], cards3_list = [];
+
+    $(function () {
+        // temMsg()
+        createRules();
+
+
+
+    })
+    function createRules() {
+        datas = [
+            {
+                txt: '步骤1：随机取 4 张牌，可以任意打乱顺序；',
+                state: 0,
+            },
+            {
+                txt: '步骤2：上下对折，平均撕成两份；',
+                state: 0,
+            },
+            {
+                txt: '步骤3：将两截牌叠在一起；',
+                state: 0,
+            },
+            {
+                txt: '步骤4：将名字对应字数的牌，依次移至尾部；',
+                state: 0,
+            },
+            {
+                txt: '步骤5：从上面数 3 张牌，插入在中间任意位置；',
+                state: 0,
+            },
+            {
+                txt: '步骤6：取出最上面的牌，放置在藏牌区；',
+                state: 0,
+            },
+            {
+                txt: '步骤7：根据你的地域，从上面将对应的张数的牌插入中间；（南方人1，北方人2，不确定3）；',
+                state: 0,
+            },
+            {
+                txt: '步骤8：根据你的性别，男生扔掉上面 1 张牌，女生扔掉上面 2 张牌；',
+                state: 0,
+            },
+            {
+                txt: '步骤9：执行“见证奇迹的时刻”循环，每说一个字，取上面一张牌放置在下面；',
+                state: 0,
+            },
+            {
+                txt: '步骤10：好运留下来，从上面取 1 张牌放到下面，烦恼扔出去，从上面取 1 张牌扔掉，重复直到只剩 1 张牌；',
+                state: 0,
+            },
+            {
+                txt: '步骤11：检查最后一张牌和放置在一旁的牌是否吻合，若吻合，则魔术成功。',
+                state: 0,
+            },
+
+        ]
+
+        $.each(datas, function (index, value) {
+            $('.box-rules').append('<div class="stepItem" step=' + (index + 1) + '>' + value.txt + '</div>')
+        });
+    }
+
+    $('.clickStar').click(function () {
+
+
+
+        if (step < datas.length) {
+            step++;
+            $('.clickStar').html('下一步');
+            $('.stepItem[step=' + step + ']').css('color', 'red');
+            // 执行函数
+            eval('step_' + step)();
+
+        }
+        console.log(step)
+
+        if (step == datas.length) {
+            $('.clickStar').html('表演结束')
+            $('.box-chess').css('background-color', 'green');
+            step++;
+        }
+        else if (step == (datas.length + 1)) {
+            step = 0;
+            $('.clickStar').html('开始')
+            $('.box-chess').css('background-color', '#FF8C00');
+            $('.stepItem').css('color', '#666');
+        }
+
+
+    })
+
+    function step_1() {
+        // 1、随机生成上下牌组
+        // 遍历牌 A-D
+        for (let i = 0; i < 52; i++) {
+            var j = parseInt(i / 13);
+            var n = i % 13 + 1;
+            n = n >= 10 ? n : ('0' + n);
+            cardsList.push(['A', 'B', 'C', 'D'][j] + n);
+        }
+        // 取出随机4个数
+        cards1_list = [];
+        cards2_list = [];
+        for (var i = 0; i < 4; i++) {
+            var x = parseInt(Math.random() * (52 - i));
+            cardsList4.push(cardsList[x]);
+
+            var obj1 = {
+                index: cardsList4[i],
+                cartId: cardsList4[i],
+                in: 1,
+
+
+                top: 2 * remvalue(),
+            };
+            cards1_list.push(obj1);
+            console.log(cards1_list)
+            var obj2 = {
+                index: cardsList4[i] + 1,
+                cartId: cardsList4[i],
+                in: 2,
+                top: 2 * remvalue() + card_height / 2,
+            };
+            cards2_list.push(obj2);
+        }
+        createCards(cards1_list, cards2_list);
+    }
+    function step_2() {
+        // 2、分开上下牌组
+        $.each(cards2_list, function (index, value) {
+            value.top = value.top + remvalue();
+        });
+        changeCards(cards1_list, cards2_list);
+    }
+    function step_3() {
+        // 3、并列上下牌子
+        $.each(cards2_list, function (index, value) {
+            value.top = 2 * remvalue();
+            cards1_list.push(value);
+        });
+        changeCards(cards1_list);
+    }
+    function step_4() {
+        // 4、将名字对应字数的牌，依次移至尾部；
+        temMsg({
+            type: 'name',
+            contentTop: "您的名字共几个字？",
+            msgArr: [
+                {
+                    txt: '2',
+                },
+                {
+                    txt: '3',
+                },
+                {
+                    txt: '4'
+                }
+
+            ]
+
+        })
+    }
+    function step_5() {
+        // 5、前三和中三换位子
+        [cards1_list[0], cards1_list[1], cards1_list[2], cards1_list[3], cards1_list[4], cards1_list[5]] = [cards1_list[3], cards1_list[4], cards1_list[5], cards1_list[0], cards1_list[1], cards1_list[2]];
+        changeCards(cards1_list);
+    }
+    function step_6() {
+        $('.secret_area_box').show();
+        // 6、取出第一张牌
+        var one_car = cards1_list[0];
+        one_car.top = 10 * remvalue();
+
+        cards1_list.splice(0, 1);
+        $('.card_item[index="' + one_car.index + '"]').css('display', 'none');
+
+        $.each(cards1_list, function (index, value) {
+            var divs = $('.card_item[index="' + value.index + '"]');
+            $('.card_item').css('z-index', 0);
+            $(divs).css('z-index', 99);
+            var left = (main_width - cards1_list.length * card_x) / 2 + index * card_x;
+            $(divs).css('top', value.top);
+            $(divs).css('left', left);
+        });
+
+        var divs = $('<div class="card_item" index="' + one_car.index + '" style="position:absolute;width:' + card_width + 'px;height:' + card_height / 2 + 'px;"></div>');
+        $('.secret_area_box').append(divs);
+        $(divs).css('background', 'url(./img/cards/' + one_car.cartId + '.jpg) center bottom no-repeat');
+        $(divs).css('background-size', '100% auto');
+        $(divs).css('transition', 'all 0.5s ease-in-out');
+
+
+
+    }
+    function step_7() {
+        // 7、将对应的张数的牌插入中间
+        temMsg({
+            type: 'area',
+            contentTop: "您是哪里人",
+            msgArr: [
+                {
+                    num: 1,
+                    txt: '南方人',
+                },
+                {
+                    num: 2,
+                    txt: '北方人',
+                },
+                {
+                    num: 3,
+                    txt: '不确定'
+                }
+
+            ]
+
+        })
+
+    }
+    function step_8() {
+        // 8、扔掉对应张数的牌
+        temMsg({
+            type: 'sex',
+            contentTop: "您的性别是",
+            msgArr: [
+                {
+                    num: 1,
+                    txt: '男',
+                },
+                {
+                    num: 2,
+                    txt: '女',
+                },
+
+            ]
+
+        })
+    }
+    function step_9() {
+        // 9、每说一个字，取上面一张牌放置在下面
+
+        $('.clickStar').hide();
+        $('.clickNine').show();
+        $('.clickNine').click(function () {
+            // var state = $(this).attr('step_nine');
+            var step = $(this).attr('step_nine');
+            $(this).attr('step_nine', parseInt(step) + 1);
+            var msg = '见证奇迹的时刻';
+            if (step == 6) {
+                $(this).attr('step_nine', 0);
+                $(this).hide();
+                $('.clickStar').show();
+                // $('.clickStar').attr('step',10)
+            }
+            console.log(step)
+            showMsg(msg.substring(parseInt(step), parseInt(step) + 1));
+
+            cards1_list.push(cards1_list[0]);
+            cards1_list.splice(0, 1);
+            console.log(cards1_list)
+            changeCards(cards1_list);
+        })
+
+    }
+    function step_10() {
+        console.log('step_10');
+        // 10、好运留下来，从上面取 1 张牌放到下面，烦恼扔出去，从上面取 1 张牌扔掉，重复直到只剩 1 张牌；
+        $('.clickStar').hide();
+        $('.clickTen').show();
+
+        $('.clickTen').click(function () {
+            var step = $(this).attr('step_ten');
+            console.log(step)
+            if (step == 0) {
+
+                $('.clickTen').find('.box-bottom').html('好运留下来')
+                cards1_list.push(cards1_list[0]);
+                cards1_list.splice(0, 1);
+                $(this).attr('step_ten', 1);
+                changeCards(cards1_list);
+            }
+            else {
+                $('.clickTen').find('.box-bottom').html('烦恼扔出去')
+                $('.card_item[index="' + cards1_list[0].index + '"]').hide();
+                cards1_list.splice(0, 1);
+                $(this).attr('step_ten', 0);
+
+                var card_height = 5 * remvalue();
+                var card_width = parseInt(card_height * 105 / 150);
+                var card_x = parseInt(card_width * 1.1);
+                var main_width = $('.main').width();
+                $.each(cards1_list, function (index, value) {
+                    var divs = $('.card_item[index="' + value.index + '"]');
+
+                    $('.card_item').css('z-index', 0);
+                    $(divs).css('z-index', 99);
+
+                    var left = (main_width - cards1_list.length * card_x) / 2 + index * card_x;
+                    $(divs).css('top', value.top);
+                    $(divs).css('left', left);
+                });
+            }
+
+
+        })
+    }
+    function step_11() {
+        console.log('step_11')
+    }
+
+    // 创建随机扑克
+    function createCards(cards1_list, cards2_list) {
+        $('.main').empty();
+        var card_height = 5 * remvalue();
+        var card_width = parseInt(card_height * 105 / 150);
+        var card_x = parseInt(card_width * 1.1);
+        var main_width = $('.main').width();
+        // 上组牌
+        $.each(cards1_list, function (index, item) {
+
+            var divs = $('<div class="card_item" index="' + item.index + '" style="position:absolute;width:' + card_width + 'px;height:' + card_height / 2 + 'px;top:1rem;"></div>');
+            $('.main').append(divs);
+            if (item.in == 1) {
+                $(divs).css('height', card_height / 2);
+                $(divs).css('background', 'url(./img/cards/' + item.cartId + '.jpg) center top no-repeat');
+                $(divs).css('background-size', '100% auto');
+            }
+            $(divs).css('transition', 'all 0.5s ease-in-out');
+
+            var left = (main_width - cards1_list.length * card_x) / 2 + index * card_x;
+            $(divs).css({
+                'top': item.top + 'px',
+                'left': left + 'px'
+            })
+        });
+        // 下组牌
+        $.each(cards2_list, function (index, item) {
+            var divs = $('<div class="card_item" index="' + item.index + '"  style="position:absolute;width:' + card_width + 'px;height:' + card_height / 2 + 'px;"></div>');
+            $('.main').append(divs);
+            if (item.in == 2) {
+                $(divs).css('height', card_height / 2);
+                $(divs).css('background', 'url(./img/cards/' + item.cartId + '.jpg) center bottom no-repeat');
+                $(divs).css('background-size', '100% auto');
+            }
+            $(divs).css('transition', 'all 0.5s ease-in-out');
+
+            var left = (main_width - cards2_list.length * card_x) / 2 + index * card_x;
+            $(divs).css({
+                'top': item.top + 'px',
+                'left': left + 'px'
+            })
+
+
+        });
+
+
+
+
+    }
+    function changeCards(cards1_list, cards2_list) {
+        var card_height = 5 * remvalue();
+        var card_width = parseInt(card_height * 105 / 150);
+        var card_x = parseInt(card_width * 1.1);
+        var main_width = $('.main').width();
+
+        $.each(cards1_list, function (index, value) {
+
+            var divs = $('.card_item[index="' + value.index + '"]');
+
+            $('.card_item').css('z-index', 0);
+            $(divs).css('z-index', 99);
+
+            var left = (main_width - cards1_list.length * card_x) / 2 + index * card_x;
+            $(divs).css('top', value.top);
+            $(divs).css('left', left);
+        });
+
+        $.each(cards2_list, function (index, value) {
+
+            var divs = $('.card_item[index="' + value.index + '"]');
+            $('.card_item').css('z-index', 0);
+            $(divs).css('z-index', 99);
+
+            var left = (main_width - cards2_list.length * card_x) / 2 + index * card_x;
+            $(divs).css('top', value.top);
+            $(divs).css('left', left);
+        });
+
+        // $.each(cards3_list, function (index, value) {
+        //     var sIndex = value.index + value.part;
+        //     var divs = $('.card_item[index="' + sIndex + '"]');
+
+        //     var left = (main_width - cards3_list.length * card_x) / 2 + index * card_x;
+        //     $(divs).css('top', value.top);
+        //     $(divs).css('left', left);
+        //     if (value.part == 1) {
+        //         $(divs).css('border-bottom', value.border + 'px solid #c0c0c0');
+        //     }
+        //     else {
+        //         $(divs).css('border-top', value.border + 'px solid #c0c0c0');
+        //     }
+        // });
+
+    }
+    // 封装消息框
+    const temMsg = (data = {}) => {
+        $('#messagedivdo').empty();
+        // 你是哪里人  您的名字共几个字 您的性别是
+        let html = ` 
+        <div id="messagedivdo" class="popdiv" style="position: fixed;display: block;z-index: 2500; top: 0;left: 0;right: 0; bottom: 0;z-index: 999999; background: rgba(0, 0, 0, 0.7);">
+            <div class="messagedivdo" style="position: absolute;margin: auto;top:50%;left:50%;transform: translate(-50%, -50%);background: transparent;z-index: 999;color:black;width:70%">
+                <div style="background:#ffffff;margin:0;color: #6c6c6c;border-radius: 2%;text-align:center;padding:2rem">
+                    <div class="box_type" style="font-size:1rem;font-weight:bolder;margin-bottom:2rem" >${data.contentTop ? data.contentTop : ''}</div>
+                   
+                    <div class="box_container" style="display:flex;justify-content: space-between;font-size:1rem;">
+                        
+                    </div> 
+                </div>
+               
+            </div>
+        </div>`
+        $('body').append(html);
+
+        var type = data.type;
+        // console.log(data.type)
+        $.each(data.msgArr, function (index, item) {
+            var divs = $('<div class="box_item"  id="' + index + '" style="border-radius:0.8rem;background-color:#f8f8f8;padding:1rem 1.2rem;cursor: pointer;font-size:.8rem">' + item.txt + '</div>');
+            $('.box_container').append(divs);
+            $('.box_item[id=' + index + ']').mouseover(function () {
+                $(this).css('background', 'darkorange');
+                $(this).css('color', 'white');
+            });
+            $('.box_item[id=' + index + ']').mouseout(function () {
+                $(this).css('background', '#f8f8f8');
+                $(this).css('color', 'black');
+            });
+
+            $('.box_item[id=' + index + ']').click(function () {
+                $('.popdiv').hide()
+
+                if (type == 'name') { // 名字
+                    cards1_list = moveFirstToEnd(cards1_list, item.txt);
+                    changeCards(cards1_list);
+
+
+
+                }
+
+                if (type == 'area') { // 区域
+                    var num = Math.round(cards1_list.length / 2);
+
+
+                    // // 截取从索引1（包含）到索引3（不包含）的数据
+                    var slicedArray = cards1_list.splice(0, item.num);
+
+                    cards1_list.splice.apply(cards1_list, [num, 0].concat(slicedArray));
+                    changeCards(cards1_list);
+
+                }
+
+                if (type == 'sex') { // 性别
+                    let num = parseInt(item.num);
+                    for (var i = 0; i < num; i++) {
+                        $('.card_item[index="' + cards1_list[0].index + '"]').hide();
+                    }
+                    cards1_list.splice(0, num)
+                    changeCards(cards1_list);
+
+
+                }
+
+            })
+        });
+
+    }
+    // 根据名字数量移除前项并追加至末尾
+    function moveFirstToEnd(arr, index) {
+        // 移除数组前两项，并保存起来
+        var firstTwoItems = arr.splice(0, index);
+        console.log(firstTwoItems);
+        // 将保存的前两项拼接到数组末尾
+        arr = arr.concat(firstTwoItems);
+        console.log(arr)
+        return arr;
+    }
+
+    function showMsg(msg) {
+        console.log(msg)
+        if ($('.showMsg').length > 0) { clearInterval(t); $('.showMsg').remove(); }
+        if (msg == undefined) msg = '';
+        console.log(msg)
+        $('.clickNine').find('.box-chess-bottom').html(msg)
+
+        TimeDelay(200);
+
+        function TimeDelay(x) {
+
+            $('.showMsg').attr('delay', x);
+            t = setInterval(function removeReadonly() {
+                var delay = $('.showMsg').attr('delay');
+                if (delay == null) delay = 0;
+                else delay = parseInt(delay);
+                delay--;
+                $('.showMsg').css('bottom', $('#content').height() / 2 - 60 + (160 - delay) / 2);
+                $('.showMsg').attr('delay', delay);
+                if (delay > 10 && delay <= 100) {
+                    $('.showMsg').css('opacity', delay / 100);
+                    $('.showMsg').css('filter', '(alpha=' + delay + ');');
+                }
+                if (delay <= 10) {
+                    clearInterval(t);
+                    $('.showMsg').remove();
+                }
+            }, 10);
+        }
+    }
+</script>
+
+</html>

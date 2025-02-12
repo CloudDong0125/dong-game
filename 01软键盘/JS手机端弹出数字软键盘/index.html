@@ -1,0 +1,51 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>JS手机移动端数字软键盘代码 - 站长素材</title>
+
+    <script type="text/javascript" src="keyBoard.js"></script>
+    <script type="text/javascript">
+        var keyBoard
+        window.onload = function () {
+            // 获取键盘实例
+            this.keyBoard = getKeyBoard(document.body)
+            // 设置PC显示键盘
+            this.keyBoard.setPCDisplay(true)
+        }
+        function show(dom, type) {
+            // 设置接收键盘输入的dom，和需要切换焦点的类型
+            this.keyBoard.setOutput(dom, type)
+            // 显示
+            this.keyBoard.show()
+        }
+        function showById(domId, type) {
+            // 设置接收键盘输入的domId，和需要切换焦点的类型
+            this.keyBoard.setOutputById(domId, type)
+            // 显示
+            this.keyBoard.show()
+        }
+        function showByClass(domClass, type) {
+            // 设置接收键盘输入的domClass，和需要切换焦点的类型
+            this.keyBoard.setOutputByClass(domClass, type)
+            // 显示
+            this.keyBoard.show()
+        }
+    </script>
+
+</head>
+<body>
+
+    <!-- 传dom -->
+    <input type="text" onfocus="show(this,'tn')" />
+
+    <div class="test">
+        <!-- 传class -->
+        <input type="text" onfocus="showByClass('h','tn')" class="h tn" />
+        <!-- 传id -->
+        <input type="text" onfocus="showById('i','tn')" id="i" class="tn" />
+    </div>
+  
+</body>
+</html>

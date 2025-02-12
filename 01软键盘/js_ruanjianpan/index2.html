@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>js_软键盘</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+
+</head>
+
+<body>
+    <div class="container-body">
+        <div class="login-group" id="login">
+            <h1>欢迎登录</h1>
+            <!--分隔符-->
+            <div class="light-white"></div>
+
+            <!--账号输入框-->
+            <div class="login-input">
+                <input class="input1" id="username" type="text" placeholder="请输入账号" maxlength="15"/>
+                <input class="input2 username" type="button" value="打开/关闭 键盘" onclick="ctrKeyboard(1)" />
+            </div>
+
+            <!--密码输入框-->
+            <div class="login-input">
+                <input class="input1" id="password" type="password" placeholder="请输入密码" maxlength="15" />
+                <input class="input2 password" type="button" value="打开/关闭 键盘" onclick="ctrKeyboard(2)" />
+            </div>
+
+            <button  id="loginBtn" onclick="loginBtn()">登 录</button>
+
+         
+          
+        </div>
+
+
+
+    </div>
+
+
+    <script type="text/javascript" src="js/keyboard2.js"></script>
+</body>
+
+</html>

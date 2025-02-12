@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: #FFF;
+            text-align: center;
+        }
+        #canvas {
+            background-color: #FFF;
+            margin-left: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>俄罗斯方块</h2>
+    <canvas id="canvas"></canvas>
+    <script>
+        let canvas = document.getElementById('canvas')
+        let ctx = canvas.getContext('2d')
+        canvas.width = 422
+        canvas.height = 622
+ 
+        let arrayWidth = 21
+        let arrayHeight = 31
+         
+        ctx.fillStyle= 'white'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.strokeRect(0, 0, canvas.width, canvas.height)
+        
+ 
+        let blockArray = [...Array(arrayWidth)].map(e=>Array(arrayHeight).fill(0))
+        let flagArray = [...Array(arrayWidth)].map(e=>Array(arrayHeight).fill(0))
+ 
+        let coorX = 9
+        let coorY = 0
+ 
+        let currentShape
+        let currentDirection
+        let gameOver = false
+ 
+        //定义方向常量
+        const DIRECTION =  {
+            NO: 1,
+            LEFT: 2,
+            RIGHT: 3,
+            DOWN: 4
+        }
+  
+         //坐标类
+        class Coordinate {
+            constructor(x, y) {
+                this.x = x
+                this.y = y
+            }
+        }
+        //七种形状数组描述
+        let t_shape = [[1,0],[0,1],[1,1],[2,1]]
+        let i_shape = [[0,0],[1,0],[2,0],[3,0]]
+        let s_shape = [[1,0],[2,0],[0,1],[1,1]]
+        let o_shape = [[0,0],[0,1],[1,0],[1,1]]
+        let l_shape = [[0,0],[0,1],[1,1],[2,1]]
+        let j_shape = [[0,1],[0,0],[1,0],[2,0]]
+        let z_shape = [[0,0],[0,1],[1,1],[2,1]]
+ 
+ 
+        //色相,用于方块颜色
+        let hue = Math.random() * 360
+ 
+        //存储所有形状的数组
+        let shapes = [t_shape, i_shape, s_shape, o_shape, l_shape, j_shape, z_shape]
+        let colors = ['red', 'blue', 'orange', 'purple', 'lime', 'teal', 'green']
+         
+        //DOM加载完成事件监听
+        document.addEventListener('DOMContentLoaded', initCanvas)
+ 
+        //初始化画布canvas
+        function initCanvas() {
+            //创建数组存储每一个方块,每个方块使用对象Coordinate描述
+            createBlockArray()
+            //随机产生不同的方块形状
+            randomShape()
+            //画方块形状
+            drawShape()
+ 
+            //动画函数
+            animate()
+ 
+            //添加键盘按下事件
+            document.addEventListener('keydown', keyPress)
+        }
+ 
+        function keyPress(event) {
+              
+            if(event.keyCode === 37) {
+                currentDirection = DIRECTION.LEFT
+                
+                if(!checkForBoundary()) {
+                    removeShape()
+                    coorX--
+                    drawShape()
+                }
+            }
+            else if(event.keyCode === 39) {
+                currentDirection = DIRECTION.RIGHT
+                if(!checkForBoundary()) {
+                    removeShape()
+                    coorX++
+                    drawShape()
+                }
+            }
+            else if(event.keyCode === 38) {
+                rotateShape()
+            }
+            else if(event.keyCode === 40) {
+                currentDirection = DIRECTION.DOWN
+                moveDown()
+            }
+        }
+ 
+        //旋转方块
+        function rotateShape() {
+            let shapeCopy = currentShape
+            let newShape = []
+            let shape = [...currentShape]
+            for(let i=0;i<shapeCopy.length; i++) {
+                let x = shapeCopy[i][0]
+                let y = shapeCopy[i][1]
+                let newX = getLastBlockX() - y
+                let newY = x
+                newShape.push([newX,newY])
+            }
+ 
+            removeShape()
+            try {
+                currentShape = newShape
+                drawShape()
+            }
+            catch(error) {
+                if(error instanceof TypeError) {
+                    currentShape = shape
+                    removeShape()
+                    drawShape()
+                }
+            }
+ 
+        }
+ 
+        function getLastBlockX() {
+            let lastX = 0
+            for(let i=0;i<currentShape.length;i++) {
+                let block = currentShape[i]
+                if(block[0]>lastX) {
+                    lastX = block[0]
+                }
+            }
+            return lastX
+        }
+ 
+        //检测是否到底部或积木上方
+        function checkForBottom() {
+            let isCollision = false
+            let tempShape = currentShape
+            for(let i=0; i<tempShape.length;i++) {
+                const block = tempShape[i]
+                let x = block[0] + coorX
+                let y = block[1] + coorY
+ 
+                if(currentDirection == DIRECTION.DOWN) {
+                    y++
+                }
+ 
+                if(flagArray[x][y+1] == undefined) {
+                    removeShape()
+                    coorY++
+                    drawShape()
+                    isCollision = true
+                    break;
+                }
+            }
+ 
+            if(isCollision) {
+                randomShape()
+                currentDirection = DIRECTION.NO
+                coorX = 9
+                coorY = 0
+                drawShape()
+            }
+            return isCollision
+        }
+ 
+        //检测是否超过左右边界
+        function checkForBoundary() {
+            for(let i=0;i<currentShape.length;i++) {
+                let newX = currentShape[i][0] + coorX
+                if(newX <= 0 && currentDirection === DIRECTION.LEFT) {
+                    return true
+                }
+                else if(newX >= 20 && currentDirection == DIRECTION.RIGHT) {
+                    return true
+                }
+            }
+            return false
+        }
+ 
+         
+        function createBlockArray() {
+            let i=0, j=0
+            for(let y = 2; y<620; y+=20) {
+                for(let x = 2; x<420; x += 20) {
+                    ctx.fillStyle = '#DDD'
+                    ctx.fillRect(x,y,19,19)
+                    blockArray[i][j] = new Coordinate(x,y)
+                    i++
+                }
+                j++
+                i=0
+            }
+  
+        }
+ 
+ 
+ 
+        //随机选择一个形状并绘制在画布canvas中
+        function drawShape() {
+            
+            //遍历形状数组中的每一个元素
+            for(let i=0;i<currentShape.length;i++) {
+                let a = currentShape[i][0] + coorX
+                let b = currentShape[i][1] + coorY
+ 
+                flagArray[a][b] = 1
+                let blockX = blockArray[a][b].x
+                let blockY = blockArray[a][b].y
+                  
+                ctx.fillStyle = currentColor
+                ctx.fillRect(blockX, blockY, 19, 19)
+                 
+            }
+        }
+ 
+        function removeShape() {
+            
+           //遍历形状数组中的每一个元素
+           for(let i=0;i<currentShape.length;i++) {
+               let a = currentShape[i][0] + coorX
+               let b = currentShape[i][1] + coorY
+               flagArray[a][b] = 0
+               let blockX = blockArray[a][b].x
+               let blockY = blockArray[a][b].y
+               ctx.fillStyle = '#DDD'
+               ctx.fillRect(blockX, blockY, 19, 19)
+           }
+       }
+ 
+        function randomShape() {
+            //随机选择一个图形
+            let randomIndex = Math.floor(Math.random() * shapes.length)
+            //获取形状数组对象
+            let shape = shapes[randomIndex]
+            currentColor = colors[randomIndex]
+            currentShape = shape
+        }
+ 
+ 
+        let lastTime = 0
+        let intervalTime = 0
+        let speed = 0.3
+ 
+        function animate(time) {
+             
+            if(!time) {
+                time = lastTime
+            }
+            intervalTime += speed * (time-lastTime)
+ 
+            if(!gameOver && intervalTime > 300) {
+                intervalTime = 0
+                moveDown()
+            }
+            lastTime = time
+            window.requestAnimationFrame(animate)
+        }
+ 
+        function moveDown() {
+            if(!checkForBottom()) { 
+                removeShape()
+                coorY++
+                drawShape()
+            }
+        }
+ 
+ 
+        /* function drawShape() {
+             
+            for(let i=0;i<t_shape.length;i++) {
+                let a = i_shape[i][0]
+                let b = i_shape[i][1]
+                let blockX = blockArray[a][b].x
+                let blockY = blockArray[a][b].y
+                ctx.fillStyle = 'blue'
+                ctx.fillRect(blockX, blockY, 19, 19)
+            }
+        } */
+   
+    </script>
+</body>
+</html>

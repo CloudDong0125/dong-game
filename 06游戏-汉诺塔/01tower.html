@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+    <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+    <title>07游戏-汉诺塔</title>
+    <style lang="scss" scoped>
+        html {
+            font-size: 12px
+        }
+
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* 所有标签的内外边距清零 */
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        /* em 和 i 斜体的文字不倾斜 */
+        em,
+        i {
+            font-style: normal
+        }
+
+        /* 去掉li 的小圆点 */
+        li {
+            list-style: none
+        }
+
+        img {
+            /* border 0 照顾低版本浏览器 如果 图片外面包含了链接会有边框的问题 */
+            border: 0;
+            /* 取消图片底侧有空白缝隙的问题 */
+            vertical-align: middle
+        }
+
+        button {
+            /* 当我们鼠标经过button 按钮的时候，鼠标变成小手 */
+            cursor: pointer
+        }
+
+        a {
+            color: #666;
+            text-decoration: none
+        }
+
+        a:hover {
+            color: #c81623
+        }
+
+        button,
+        input {
+            /* "\5B8B\4F53" 就是宋体的意思 这样浏览器兼容性比较好 */
+            font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif
+        }
+
+        body {
+            /* CSS3 抗锯齿形 让文字显示的更加清晰 */
+            -webkit-font-smoothing: antialiased;
+            background-color: #fff;
+            font: 12px/1.5 Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif;
+            color: #666
+        }
+
+        .content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* justify-content: center;
+            align-items: center; */
+            min-width: 400px;
+
+
+        }
+
+        .box-rules {
+            font-size: 1.2rem;
+            padding: 3rem 0 0 3rem;
+
+        }
+
+        .rules-title {
+
+            color: black;
+            font-weight: 900;
+
+
+        }
+
+        .box-tab {
+            margin-top: 2rem;
+            display: flex;
+            padding: 3rem 0 0 3rem;
+        }
+
+        #tab {
+
+            display: flex;
+            /* margin-left: 10rem; */
+        }
+
+        .tab_item {
+
+            border-radius: 0.5rem;
+            padding: 0.2rem;
+            border: 0.1rem solid #cccc;
+            cursor: pointer;
+
+        }
+
+        .m-lr10 {
+            margin: 0 1rem;
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+        }
+
+        .pd20 {
+            padding: .5rem 1rem;
+        }
+
+        .font12 {
+            font-size: 1.2rem;
+        }
+
+        .font14 {
+            font-size: 1.4rem;
+        }
+
+        .font16 {
+            font-size: 1.6rem;
+        }
+
+        .font18 {
+            font-size: 1.8rem;
+        }
+
+        .mt10 {
+            margin-top: 1rem;
+        }
+
+        .mb10 {
+            margin-bottom: 1rem;
+        }
+
+
+        .box-chess-bottom {
+            width: 100%;
+            height: 4rem;
+            background-color: #ffd79c;
+
+            position: fixed;
+            bottom: 0;
+
+        }
+
+        .box-chess-bottom-line {
+            width: 100%;
+            position: fixed;
+            bottom: 3rem;
+        }
+
+        .box_zm_item {
+            position: absolute;
+            width: 1rem;
+            bottom: 35%;
+
+        }
+
+        .box_line_item {
+            position: absolute;
+            width: 1.5rem;
+            height: 20rem;
+            bottom: 0;
+            background: #a0a0a0;
+            border: 1px solid #909090;
+            border-radius: 0.2rem 0.2rem 0 0;
+            cursor: pointer;
+        }
+
+        .cir_box_item {
+            position: absolute;
+            height: 1.5rem;
+            line-height: 1.5rem;
+            font-size: 0.8rem;
+            /* margin: 0px;
+            padding: 0px; */
+            color: white;
+            border-radius: 0.2rem;
+            cursor: pointer;
+            width: 6rem;
+        }
+
+        .box_line_item.highlight {
+            background-color: white;
+            /* 或者其他你想要的高亮颜色 */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="content">
+        <!-- 规则 -->
+        <div class="box-rules font14">
+            <div class="rules-title font18 mb10">汉诺塔游戏</div>
+
+        </div>
+        <!-- 关卡tab -->
+        <div class="box-tab flex font12 ">
+            <div class="">选择难度:</div>
+            <div id="tab">
+
+            </div>
+        </div>
+        <!-- 游戏盘 -->
+        <div class="box-chess">
+            <div class="box-chess-top"></div>
+
+            <div class="box-chess-bottom-line">
+
+                <div class="box-line"></div>
+                <div class="box-circle"></div>
+
+            </div>
+            <div class="box-chess-bottom">
+
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var in_color = ['#92d1ea', '#dc3545', '#ffc107', '#007bff', '#28a745', '#20c997', '#800080', '#17a2b8', '#92d1ea'];
+    var pos1, pos2, lineHeight;
+    var pole_datas = [[], [], []]; // 记录三柱的内容数据
+    function remvalue() {
+        var remstr = window.getComputedStyle(document.documentElement)["fontSize"];
+        remstr = remstr.substring(remstr, remstr.length - 2);
+        return remstr * 1.0;
+    }
+
+    console.log('remvalue()=' + remvalue());
+    $(function () {
+        // // 获取窗口宽度
+        // var windowWidth = window.innerWidth;
+
+        // // 设置手机尺寸阈值
+        // var mobileSizeThreshold = 700;
+
+        // // 检查是否是手机尺寸
+        // if (windowWidth >= mobileSizeThreshold) {
+        //     // 如果不是手机尺寸，则阻止接下来的操作
+        //     alert('请在竖屏模式下使用。');
+        //     // 在这里你可以添加更多的代码来阻止接下来的操作
+        //     return;
+        // }
+        createRules();
+        createBox();
+        createTab();
+
+    })
+    function createRules() {
+        let datas = [
+            {
+                txt: '1、游戏开始时，有ABC三根柱子，左侧柱子上放置从小到大的圆盘；'
+            },
+            {
+                txt: '2、先点击A，再点击B，表示要把A柱子最上面的圆盘移到B柱子上；'
+            },
+            {
+                txt: '3、每次只能移动一个圆盘，且在移动过程中，小圆盘必须在大圆盘上面；'
+            },
+            {
+                txt: '4、游戏的目标是将所有圆盘从A柱移动到C柱，并且从小到大叠放。'
+            },
+
+
+        ]
+
+        $.each(datas, function (index, value) {
+            $('.box-rules').append('<div >' + value.txt + '</div>')
+
+        });
+
+    }
+    function createTab() {
+
+        // 设置难度
+        let datas = [
+            {
+                id: 3,
+                tabName: '3'
+            },
+            {
+                id: 4,
+                tabName: '4'
+            },
+            {
+                id: 5,
+                tabName: '5'
+            },
+            {
+                id: 6,
+                tabName: '6'
+            }
+        ]
+        // 难度tab栏
+        function show_tab() {
+            var tab_id = 4;
+            $.each(datas, function (index, value) {
+                // 年级列表
+                $('#tab').append('<div class="tab_item m-lr10  pd20" tab_id=' + value.id + ' style="">' + value.tabName + '个盘子</div>');
+            });
+
+            $('#tab').find('.tab_item').click(function () {
+                tab_id = $(this).attr('tab_id');
+                // console.log(tab_id)  
+                $('#tab').find('.tab_item').css('border', '0.1rem solid #666');
+                $('#tab').find('.tab_item').css('color', '#666');
+                $('#tab').find('.tab_item[tab_id=' + tab_id + ']').css({ 'border': '0.1rem solid red', 'color': 'black' });
+                createCircle(tab_id);
+            });
+
+
+        }
+        show_tab();
+        ($('#tab').find('.tab_item')[0]).click();
+
+    }
+    function createBox() {
+        $('.box-chess-bottom').empty();
+        var div_zm = $('<div style="width:100%;height:100%;position:relative;font-size: 1.5rem;font-weight: bolder;padding: 1rem 0;color: black;"></div>')
+        $('.box-chess-bottom').append(div_zm);
+        var zm = ['A', 'B', 'C']
+        for (var i = 0; i <= 2; i++) {
+            pole_datas[i] = [];
+            var div_zm_item = $(' <div class="box_zm_item" style="left:calc(' + ((i + 1) * 30 - 10) + '% - 1.5rem);"  index=' + i + '>' + zm[i] + '</div>')
+            $(div_zm).append(div_zm_item)
+        }
+
+        var div_line = $(' <div style="width:100%;height:100%;position:relative;font-size: 1.5rem;font-weight: bolder;padding: 2rem 0;color: black;"></div>');
+        $('.box-line').append(div_line);
+
+        for (var i = 0; i <= 2; i++) {
+            var div_line_item = $('<div class="box_line_item" style="left:calc(' + ((i + 1) * 30 - 10) + '% - 1.5rem);" state=0 index=' + i + '></div>');
+            $(div_line).append(div_line_item);
+            pole_datas[0].unshift(i);
+        }
+        pos1 = $('.box_line_item[index=0]').position();
+        pos2 = $('.box_line_item[index=1]').position();
+        lineHeight = $('.box_line_item').height()
+        console.log(pos1, pos2, '1111')
+        console.log(pole_datas, 'pole_datas[0].unshift(i);')
+    }
+
+
+
+    function createCircle(level) {
+        $('.box-circle').empty();
+
+        for (var i = 1; i <= level; i++) {
+
+            var w = (4 + (i + 1) * 2) * remvalue();
+            var x = pos1.left - w / 2 + 0.5 * remvalue();
+            var y = $('.box-chess').height() - (level - i) * 2 * remvalue();
+            console.log($('.content').height(), '1')
+            var div_s = $('<div class="cir_box_item" cirIndex=' + (i - 1) + '  style="left:1.5rem;background: ' + in_color[i] + '; "></div>');
+            $('.box-circle').append(div_s);
+            $(div_s).css('width', w / remvalue() + 'rem');
+            $(div_s).css('left', x / remvalue() + 'rem');
+            $(div_s).css('top', y / remvalue() + 'rem');
+
+            clickFunction();
+        }
+
+    }
+
+    function clickFunction() {
+        $('.box_line_item').mouseenter(function () {
+            // 移除其他tab的高亮
+            $('.box_line_item.highlight').removeClass('highlight');
+            // 给当前tab添加高亮
+            $(this).addClass('highlight');
+        }).mouseleave(function () {
+            // 移除当前tab的高亮
+            $(this).removeClass('highlight');
+        });
+
+        $('.box_line_item').click(function () {
+            // console.log('点击')
+            if ($(this).attr('state') != 0) return;
+            var line_index = $(this).attr('index');
+            if ($('.box_line_item[state=1]').length == 0) {  // 存在内容的柱子 记录为from 
+
+                if (pole_datas[line_index].length > 0) {
+                    $(this).css('border', '.1rem solid red');
+                    $(this).attr('state', 1);
+                    $('.box_line_item[index=' + line_index + ']').css('border', '.1rem solid red');
+                    var d1 = pole_datas[line_index][pole_datas[line_index].length - 1];  // 获取到最上层的一个内容
+                    $('.cir_box_item[cirIndex=' + d1 + ']').css('box-shadow', '0 0 5px #666666');
+                }
+                return;
+
+            }
+            else { // 不存在内容的柱子--记录为  to
+                $('.box_line_item[state=2]').css('border', '.1rem solid transparent');
+                $('.box_line_item[state=2]').attr('state', 0);
+                $(this).css('border', '.1rem solid green');
+                $(this).attr('state', 2);
+                $('.box_line_item[index=' + line_index + ']').css('border', '.1rem solid green');
+
+            }
+            var from_pole = $('.box_line_item[state=1]').attr('index');
+            var to_pole = $('.box_line_item[state=2]').attr('index');
+            console.log(from_pole, to_pole);
+
+            moveFunction(from_pole, to_pole)
+        })
+    }
+    function moveFunction(m1, m2) {
+        console.log(['A', 'B', 'C'][parseInt(m1)] + ' → ' + ['A', 'B', 'C'][parseInt(m2)]);
+        var t1 = pole_datas[m1][pole_datas[m1].length - 1]; // 获取from位 最上层 t1内容长   度
+        var f1 = 99;
+        var f_data = pole_datas[m2].length; // 判断 from位 是否存在内容
+        if (f_data > 0) { // 存在则 to  的  f1 去除该长度
+            f1 = pole_datas[m2][pole_datas[m2].length - 1]
+        }
+        console.log(m1, m2);
+        console.log(t1, f1);
+
+        // 大盘子不能放置在小盘子上面
+        console.log('t1 > f1', t1 > f1)
+        if (t1 > f1) {
+            alert('大盘子不能放置在小盘子上面！');
+            // 取消选中的样式更改状态
+            $('.box_line_item').css('border', '.1rem solid transparent');
+            $('.box_line_item').attr('state', 0);
+            $('.cir_box_item[cirIndex=' + d1 + ']').css('box-shadow', '');
+            return;
+
+        }
+
+        // 处理交换
+        var pos = $('.box_line_item[index='+ m2 +']').position(); // 获取 from 位 柱位
+        console.log(pos,'pos')
+        var w  = (4+(level - t1) * 2)*remvalue(); 
+        var x = pos.left - w/2 + 0.5*remvalue();
+        var y = pole_datas[m2].length * 2 * remvalue() + 0.5 * remvalue();
+
+        pole_datas[m1].pop();
+        pole_datas[m2].push(t1);
+
+        $('.cir_box_item[cirIndex=' + d1 + ']').attr('pole',m2);
+
+
+
+    }
+
+
+</script>
+
+</html>

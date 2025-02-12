@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>js_软键盘</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <script>
+        window.onload = function () {
+
+
+            var vcenter = "js中插入";
+
+            var vcurrent = document.getElementById("1");
+
+            //中间
+            var newNodeCenter = document.createElement("div");
+            newNodeCenter.innerHTML = vcenter;
+            vcurrent.appendChild(newNodeCenter);
+
+
+        }
+    </script>
+</head>
+
+<body>
+    <div id="1">current DIV</div>
+
+
+    <!-- <script type="text/javascript" src="js/keyboard.js"></script> -->
+</body>
+
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport"
+		content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+	<script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+	<title>黑白棋子游戏</title>
+	<style>
+		.rs-css {
+			display: inline-block;
+			min-width: 2.5rem;
+			text-align: center;
+			height: 1.2rem;
+			line-height: 1.2rem;
+			margin: 0.2rem 0.5rem 0.2rem 0;
+			padding: 0.5rem 0.5rem;
+			border: 1px solid #e0e0e0;
+			border-radius: 0.2rem;
+			color: #aaaaaa;
+			user-select: none;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="content"
+		style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;overflow:hidden;background:url(wood_back_little.jpg) center no-repeat;background:cover;user-select:none;">
+		<table border=0 rules=none style="width:100%;height:100%;font-size:1rem;margin:0;text-align:center;"
+			cellspacing=0 cellpadding=0>
+			<tr style="height:30%;background:white;">
+				<td class="memo">
+					<div style="width:80%;text-align:left;margin:auto;font-size:1.6rem;">黑白棋子换位游戏</div>
+					<div
+						style="width:80%;text-align:left;margin:0.5rem auto;font-size:0.8rem;color:#888888;line-height:1.5rem;">
+						1、游戏开始时，黑白棋子并列摆放，首尾各有两个空位可以使用；<br>
+						2、每次移动必须是相邻的两枚棋子，只能将这两枚棋子移动到空位；<br>
+						3、棋子移动后，原位置形成空位，当棋子中间有空位时，两端的空位不可用；<br>
+						4、移动棋子必须跳过一些棋子，不可以平移；<br>
+						5、最终棋子呈现连续的黑白交替排列，游戏结束，换位成功。
+					</div>
+				</td>
+			</tr>
+			<tr style="height:4rem;background:white;">
+				<td style="vertical-align:top;">
+					<div class="count" style="display:inline-block;width:80%;text-align:left;margin:auto;"></div>
+				</td>
+			</tr>
+			<tr style="height:6rem;">
+				<td class="main" style="vertical-align:bottom;"></td>
+			</tr>
+			<tr style="height:2rem;">
+				<td class="index"></td>
+			</tr>
+			<tr style="background:white;">
+				<td style="vertical-align:top;padding:1rem;">
+					<div class="list"
+						style="display:inline-block;width:90%;height:100%;text-align:left;margin:auto;overflow-y:auto;">
+					</div>
+				</td>
+			</tr>
+	</div>
+</body>
+
+</html>
+
+<script type="text/javascript">
+	(function (doc, win) {
+		var docEl = win.document.documentElement;
+		var resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize';
+		/**
+		  * ================================================
+		  *   设置根元素font-size
+		  * 当设备宽度为375(iPhone6)时，根元素font-size=16px; 
+		  × ================================================
+		  */
+		var refreshRem = function () {
+			var clientWidth = win.innerWidth
+				|| doc.documentElement.clientWidth
+				|| doc.body.clientWidth;
+			var clientHeight = win.innerHeight
+				|| doc.documentElement.clientHeight
+				|| doc.body.clientHeight;
+
+			$('.cover').remove();
+			if (clientWidth < clientHeight) {
+				$('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+				ShowHint('请在横屏环境下体验！');
+				return;
+			}
+			//console.log(clientWidth)
+			if (!clientWidth) return;
+			var fz;
+			var Width = clientWidth;
+			fz = 16 * Width / 1200;
+			docEl.style.fontSize = fz + 'px';
+		};
+
+		if (!doc.addEventListener) return;
+		win.addEventListener(resizeEvt, refreshRem, false);
+		doc.addEventListener('DOMContentLoaded', refreshRem, false);
+		refreshRem();
+
+	})(document, window);
+
+
+	var play_anwser = false;
+	var play_history = false;
+
+	var chess_init = '11112222';
+
+	$('.count').append('<div style="display:inline-block;height:1.2rem;line-height:1.2rem;margin:auto;color:#888888;">选择难度：</div>');
+	for (var i = 2; i <= 8; i++) {
+		$('.count').append('<div index=' + i + ' class="rs-css" >' + i + ' 枚棋子</div>');
+	}
+
+	$('.rs-css').click(function () {
+		$(this).parent().find('.rs-css').css('border', '');
+		$(this).parent().find('.rs-css').css('color', '');
+		$(this).parent().find('.rs-css').attr('state', 0);
+		$(this).css('border', '1px solid red');
+		$(this).css('color', 'black');
+		$(this).attr('state', 1);
+		var n = $(this).attr('index');
+		chess_init = '';
+		for (var i = 0; i < parseInt(n); i++) {
+			chess_init = '1' + chess_init + '2';
+		}
+
+
+		$('.count').append('<div class="answer" style="display:inline-block;height:1.2rem;line-height:1.2rem;font-size:0.8rem;margin:0.5rem;color:#c0c0c0;user-select:none;cursor:pointer;">偷看答案</div>');
+
+
+		$('.answer').remove();
+		if (n == 4) {
+			$('.count').append('<div class="answer" style="display:inline-block;height:1.2rem;line-height:1.2rem;font-size:0.8rem;margin:0.5rem;color:#c0c0c0;user-select:none;cursor:pointer;">偷看答案</div>');
+
+			$('.answer').click(function () {
+				init_chess(chess_init);
+				play_anwser = true;
+				$('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+				ShowHint('演示移动过程，注意认真观看！');
+				var step_index = 0;
+				var steps = [4, 11, 7, 4, 10, 7, 3, 10];
+				var t = setInterval(function auto_move() {
+					var click_index = steps[step_index];
+					$($('.chess_item')[click_index - 1]).click();
+					step_index++;
+					if (step_index >= steps.length) {
+						clearInterval(t);
+						$('.cover').remove();
+					}
+				}, 1500);
+			});
+
+		}
+
+		load_move_history();
+
+		init_chess(chess_init);
+	});
+
+
+	function load_move_history() {
+		var level_index = $('.rs-css[state=1]').attr('index');
+
+		$('.history').remove();
+		var move_reult = window.localStorage.getItem('black_white_chess_move_result_' + level_index);
+		//console.log('move_reult='+move_reult);
+
+		if (move_reult != null) {
+			$('.count').append('<div class="history" style="display:inline-block;height:1.2rem;line-height:1.2rem;font-size:0.8rem;margin:0.5rem;color:#c0c0c0;user-select:none;cursor:pointer;">精彩回放</div>');
+			$('.history').click(function () {
+				init_chess(chess_init);
+				play_anwser = true;
+				$('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+				ShowHint('回放移动过程，请仔细观看！');
+				var step_index = 0;
+				var steps = move_reult.split(',');
+				var t = setInterval(function auto_move() {
+					var click_index = steps[step_index];
+					$($('.chess_item')[click_index - 1]).click();
+					step_index++;
+					if (step_index >= steps.length) {
+						clearInterval(t);
+						$('.cover').remove();
+					}
+				}, 1000);
+			});
+		}
+	}
+
+	$('.rs-css[index=4]').click();
+
+
+	function init_chess(chess_str) {
+		$('.main').empty();
+		$('.list').empty();
+		$('.index').empty();
+		play_anwser = false;
+		play_history = false;
+
+		for (var i = 0; i < 2; i++) {
+			var divs = $('<div class="chess_item" p=0 index=' + i + ' enable=1 style="display:inline-block;width:3rem;height:3rem;line-height:3rem;font-size:0.8rem;vertical-align:middle;margin:0.5rem 0.2rem;border-radius:1.6rem;position:relative;cursor:pointer;"><span style="color:#faaaa;"></span></div>');
+			$('.main').append(divs);
+			$(divs).find('span').text('E' + $('.chess_item[p=0]').length);
+		}
+		for (var i = 0; i < chess_str.length; i++) {
+			var p = chess_str.substring(i, i + 1);
+			//console.log('['+i+']='+p);
+			var divs = $('<div class="chess_item" p=' + p + ' index=' + i + ' state=0 style="display:inline-block;width:3rem;height:3rem;line-height:3rem;font-size:0.8rem;vertical-align:middle;margin:0.5rem 0.2rem;border-radius:1.6rem;position:relative;cursor:pointer;"><span style="color:#aaaaaa;"></span></div>');
+			$('.main').append(divs);
+			if (p == '1') {
+				$(divs).css('background', '#333333');
+				$(divs).find('span').text('H' + $('.chess_item[p=1]').length);
+			}
+			if (p == '2') {
+				$(divs).css('background', '#eeeeee');
+				$(divs).find('span').text('B' + $('.chess_item[p=2]').length);
+			}
+
+		}
+		for (var i = 0; i < 2; i++) {
+			var divs = $('<div class="chess_item" p=0 index=' + i + ' enable=1 style="display:inline-block;width:3rem;height:3rem;line-height:3rem;font-size:0.8rem;vertical-align:middle;margin:0.5rem 0.2rem;border-radius:1.6rem;position:relative;cursor:pointer;"><span style="color:#aaaaaa;"></span></div>');
+			$('.main').append(divs);
+			$(divs).find('span').text('E' + $('.chess_item[p=0]').length);
+		}
+		$('.chess_item').css('user-select', 'none');
+		$('.chess_item').css('border', '2px solid transparent');
+		$('.chess_item[p=0]').css('border', '2px dotted #eeeeee');
+		$('.chess_item[p=1],.chess_item[p=2]').css('box-shadow', '0 0 3px #666666');
+
+		$('.chess_item').find('span').remove();
+
+		$.each($('.chess_item'), function (index, value) {
+			var divs = $('<div class="index_item"  style="display:inline-block;width:3rem;height:1rem;line-height:1rem;font-size:0.8rem;vertical-align:top;margin:0.5rem 0.2rem;border:2px solid transparent;"><span style="color:#888888;"></span></div>');
+			$('.index').append(divs);
+			$(divs).find('span').text((index + 1) >= 10 ? (index + 1) : ('0' + (index + 1)));
+		});
+
+		$('.chess_item[p=1],.chess_item[p=2]').mouseover(function () {
+			$(this).css('Opacity', '0.8');
+		});
+
+		$('.chess_item[p=1],.chess_item[p=2]').mouseout(function () {
+			$(this).css('Opacity', '1');
+		});
+
+		$('.chess_item[p=1],.chess_item[p=2]').click(function () {
+			$('.chess_item[p=1],.chess_item[p=2]').css('border', '2px solid transparent');
+			$('.chess_item[p=1],.chess_item[p=2]').attr('state', 0);
+
+			if ($(this).next().length == 0 || $(this).next().attr('p') == '0') {
+				if ($(this).prev().length == 0 || $(this).prev().attr('p') == '0') {
+					ShowHint('每次移动必须是两枚连续的棋子！');
+					return;
+				}
+				else {
+					$(this).prev().css('border', '2px solid red');
+					$(this).prev().attr('state', 1);
+				}
+			}
+			else {
+				$(this).next().css('border', '2px solid red');
+				$(this).next().attr('state', 1);
+			}
+			$(this).css('border', '2px solid red');
+			$(this).attr('state', 1);
+			var select_first = $($('.chess_item[state=1]')[0]);
+			console.log('select-index:' + $(select_first).index());
+		});
+
+		check_free();
+
+		$('.chess_item[p=0]').click(function () {
+			if ($('.chess_item[state=1]').length == 0) return;
+			if ($(this).attr('enable') == 0) return;
+			var free_first = $(this);
+			if ($(this).next().attr('p') != '0') free_first = $(this).prev();
+			var free_nexts = $(free_first).next();
+
+			var free_left = $(free_first).prev().attr('p');
+			var free_right = $(free_first).next().next().attr('p');
+			if (free_left == null) free_left = 0;
+			if (free_right == null) free_right = 0;
+			//console.log('fl='+free_left+',fr='+free_right);
+
+			if (free_left == 0 && free_right == 0) {
+				ShowHint('移动棋子时，目标位置和队列之间不能有空格！');
+				return;
+			}
+
+
+			var select_first = $('.chess_item[state=1]')[0];
+			var select_nexts = $('.chess_item[state=1]')[1];
+
+
+			var free_index = $(free_first).index();
+			var select_index = $(select_first).index();
+
+			if (Math.abs(select_index - free_index) <= 2) {
+				ShowHint('禁止平移棋子！');
+				return;
+			}
+
+			if ($('.move_item').length > chess_init.length * 1.5) {
+				ShowHint('移动次数太多，别折腾了，重新来过吧！');
+				return;
+			}
+
+			write_move_step(select_index, free_index);
+
+			move_chess(select_index, free_index);
+
+		});
+	}
+
+	function write_move_step(select_index, free_index) {
+		$('.move_item').find('.move_reset').hide();
+
+		var divs = $('<div class="move_item" x1=' + select_index + ' x2=' + free_index + ' style="display:inline-block;width:12rem;height:2rem;line-height:2rem;background:#f0f0f0;border-radius:0.2rem;margin:0.5rem 0.2rem;text-align:center;user-select:none;position:relative;"></div>');
+		$('.list').append(divs);
+
+		var selects = $($('.index_item')[select_index]).text() + ' ' + $($('.index_item')[select_index + 1]).text();
+		var frees = $($('.index_item')[free_index]).text() + ' ' + $($('.index_item')[free_index + 1]).text();
+
+		$(divs).append('<div style="position:absolute;width:2rem;background:#40C3FF;color:white;left:0;top:0;bottom:0;margin:auto;border-radius:0.2rem 0 0 0.2rem;">' + $('.move_item').length + '</div>');
+		$(divs).append('<div style="position:absolute;left:2.8rem;top:0;bottom:0;margin:auto;">' + selects + ' -> ' + frees + '</div>');
+		$(divs).append('<div class="move_reset" style="position:absolute;width:1rem;height:1rem;line-height:0.9rem;background:#ff6666;color:white;right:0.25rem;top:0;bottom:0;margin:auto;cursor:pointer;border-radius:0.5rem">×</div>');
+		$(divs).find('.move_reset').click(function () {
+			var select_index = parseInt($(this).parent().attr('x1'));
+			var free_index = parseInt($(this).parent().attr('x2'));
+			move_chess(select_index, free_index);
+			//console.log('['+$('.move_item').length+']'+select_index+'<->'+free_index);
+			$(this).parent().remove();
+			if ($('.move_item').length > 0) $('.move_item').last().find('.move_reset').show();
+		});
+
+		$(divs).find('.move_reset').mouseover(function () {
+			$(this).css('background', 'red');
+		});
+
+		$(divs).find('.move_reset').mouseout(function () {
+			$(this).css('background', '#ff6666');
+		});
+	}
+
+	function move_chess(x1, x2) {
+
+		if (x1 > x2) { var x = x1; x1 = x2; x2 = x; }
+		console.log(x1 + '<->' + x2);
+
+		var x1_first = $('.chess_item')[x1];
+		var x1_nexts = $(x1_first).next();
+		var x2_first = $('.chess_item')[x2];
+		var x2_nexts = $(x2_first).next();
+
+		var temp_first = $('<div class="chess_item" p=3 style="display:inline-block;width:3rem;height:3rem;line-height:3rem;background:yellow;font-size:0.8rem;vertical-align:middle;margin:0.5rem 0.2rem;border-radius:1.6rem;position:relative;cursor:pointer;"><span style="color:#aaaaaa;">*</span></div>');
+		var temp_nexts = $('<div class="chess_item" p=3 style="display:inline-block;width:3rem;height:3rem;line-height:3rem;background:yellow;font-size:0.8rem;vertical-align:middle;margin:0.5rem 0.2rem;border-radius:1.6rem;position:relative;cursor:pointer;"><span style="color:#aaaaaa;">*</span></div>');
+
+		$(temp_first).insertBefore($(x1_first));
+		$(temp_nexts).insertBefore($(x1_first));
+
+		$(x1_first).insertBefore($(x2_first));
+		$(x1_nexts).insertBefore($(x2_first));
+		$(x2_first).insertBefore($(temp_first));
+		$(x2_nexts).insertBefore($(temp_first));
+
+		$('.chess_item[p=3]').remove();
+
+		$('.chess_item[p=1],.chess_item[p=2]').attr('state', 0);
+		$('.chess_item[p=1],.chess_item[p=2]').css('border', '2px solid transparent');
+
+		check_free();
+	}
+
+	function check_free() {
+		var items = $('.chess_item');
+		var item_flags = '';
+		var center_free = false;
+		$.each(items, function (index, value) {
+			var p = $(value).attr('p');
+			if (p > 0) p = 1;
+			item_flags = item_flags + p;
+		});
+
+		item_flags = item_flags.replaceAll('1001', '1--1');
+		item_flags = item_flags.replaceAll('0', 'x');
+		if (item_flags.indexOf('1--1') < 0) {
+			item_flags = item_flags.replaceAll('xx1', '001');
+			item_flags = item_flags.replaceAll('1xx', '100');
+			item_flags = item_flags.replaceAll('--', '00');
+		}
+		else {
+			item_flags = item_flags.replaceAll('--', '00');
+		}
+		//console.log('item_flags='+item_flags);
+
+		var items_result = '';
+
+		for (var i = 0; i < item_flags.length; i++) {
+			var p = item_flags.substring(i, i + 1);
+			var divs = $('.chess_item')[i];
+			if (p == 'x') {
+				$(divs).css('border', '2px dotted #c8c8c8');
+				$(divs).css('cursor', '');
+				$(divs).find('span').css('color', '#c8c8c8');
+				$(divs).attr('enable', 0);
+				items_result = items_result + 'x';
+			}
+			if (p == '0') {
+				$(divs).css('border', '2px dotted #eeeeee');
+				$(divs).css('cursor', 'pointer');
+				$(divs).find('span').css('color', '#aaaaaa');
+				$(divs).attr('enable', 1);
+				items_result = items_result + '0';
+			}
+			if (p == '1') {
+				items_result = items_result + $(divs).attr('p');
+			}
+		}
+		items_result = items_result.replaceAll('x', ' ');
+		items_result = items_result.replaceAll('0', ' ');
+		items_result = $.trim(items_result);
+		if (items_result.indexOf('11') < 0 && items_result.indexOf('22') < 0 && items_result.indexOf('  ') < 0) {
+			$('.chess_item').unbind('click');
+			if (play_anwser) {
+				ShowHint('演示完毕，总共移动了 ' + $('.move_item').length + ' 步！');
+				play_anwser = false;
+			}
+			else if (play_history) {
+				ShowHint('回放完毕，总共移动了 ' + $('.move_item').length + ' 步！');
+				play_history = false;
+			}
+			else {
+				ShowHint('挑战成功，总共移动了 ' + $('.move_item').length + ' 步！');
+
+				var moves = $('.move_item');
+				var move_reult = '';
+				$.each(moves, function (index, value) {
+					var x1 = $(value).attr('x1') * 1 + 1;
+					var x2 = $(value).attr('x2') * 1 + 1;
+					if (move_reult != '') move_reult = move_reult + ',';
+					move_reult = move_reult + x1 + ',' + x2;
+
+				});
+				var level_index = $('.rs-css[state=1]').attr('index');
+				window.localStorage.setItem('black_white_chess_move_result_' + level_index, move_reult);
+				load_move_history();
+			}
+
+			return;
+		}
+		//console.log('items_result='+items_result);
+	}
+
+
+	var t = null;
+
+	function ShowHint(msg) {
+		if ($('.ShowHint').length > 0) { clearInterval(t); $('.ShowHint').remove(); }
+		if (msg == undefined) msg = '';
+		var sstr = '<div class="ShowHint" style="position:fixed;left:0;right:0;bottom:80;height:2rem;margin:auto;line-height:2rem;padding:0.25rem 0;font-size:0.8rem;text-align:center;z-index:999999;background:url(img/hint-back-yellow.png) center no-repeat;background-size:auto 100% ;">' + msg + '</div>';
+
+		$('body').append(sstr);
+
+		TimeDelay(200);
+
+		function TimeDelay(x) {
+
+			$('.ShowHint').attr('delay', x);
+			t = setInterval(function removeReadonly() {
+				var delay = $('.ShowHint').attr('delay');
+				if (delay == null) delay = 0;
+				else delay = parseInt(delay);
+				delay--;
+				$('.ShowHint').css('bottom', $('#content').height() / 2 - 60 + (160 - delay) / 2);
+				$('.ShowHint').attr('delay', delay);
+				if (delay > 10 && delay <= 100) {
+					$('.ShowHint').css('opacity', delay / 100);
+					$('.ShowHint').css('filter', '(alpha=' + delay + ');');
+				}
+				if (delay <= 10) {
+					clearInterval(t);
+					$('.ShowHint').remove();
+				}
+			}, 10);
+		}
+	}
+
+</script>

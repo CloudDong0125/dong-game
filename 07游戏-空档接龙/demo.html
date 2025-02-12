@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+    <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="./js/fit.js"></script>
+    <link rel="stylesheet" type="text/css" href="./js/common.css" />
+    <title>08游戏-空档接龙</title>
+    <style lang="scss" scoped>
+        .color-y {
+            color: yellow;
+        }
+
+        .color-w {
+            color: white;
+        }
+
+        .fontSize16 {
+            font-size: 1.6rem;
+        }
+
+        .content {
+            background-color: black;
+            position: relative;
+            cursor: pointer;
+
+        }
+
+        .box-rules {
+            padding: 5rem;
+            display: none;
+
+        }
+
+        .rule-title {
+            margin-top: 2rem;
+        }
+
+        .rule-title-list {
+            margin-top: 2rem;
+        }
+
+        .main-content {
+            position: absolute;
+            left: 4rem;
+            top: 4rem;
+        }
+
+        .button-item {
+            display: inline-block;
+            width: 8rem;
+            height: 3rem;
+            line-height: 3rem;
+
+
+            margin: auto 2rem;
+            text-align: center;
+            background: darkorange;
+            color: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content" style="width:100%;">
+        <div class="main-content">
+            <div class="click-rule color-w fontSize16" style="z-index: 9999;">游戏规则</div>
+            <div>
+                <div class="main-top" style="position:relative;width:100%;"></div>
+                <div class="main-center" style="position:relative;width:100%;"></div>
+                <div class="color-w fontSize16 main-bottom"
+                    style="height:6rem;position: fixed;bottom: 0;left: 50%; transform: translateX(-50%);margin-top: 1rem;">
+                    <div class="game-start button-item">开　始</div>
+                    <div class="game-replay button-item" style="display: none;">重　玩</div>
+                    <div class="game-share button-item" style="display: none;">分　享</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 规则 -->
+        <div class="box-rules">
+        </div>
+    </div>
+</body>
+<script>
+
+    var play_moving = 0;
+    var winW = $(window).width();
+    var winH = $(window).height();
+    var card_height = 6 * remvalue();
+    var card_width = parseInt(card_height * 106 / 150);
+    var main_width = winW;
+    var main_left = parseInt(main_width - 12 * card_width) / 2;
+    console.log(winW, winH, card_height, card_width, main_width, main_left);
+    var cards_lib = [];
+    var init_cards = [];
+
+    $(function () {
+        createRules();
+
+    })
+    function createRules() {
+        let datas = [
+            {
+                title: '游戏目标',
+                list: [
+                    { listItem: '四个回收单元中各创建一叠牌，每叠 13 张，且花色相同。每叠牌必须按从小 (A) 到大 (K) 的顺序排列。' }
+                ]
+            },
+            {
+                title: '玩牌方式',
+                list: [
+                    { listItem: '空当接龙仅使用一副牌玩，共 52 张，牌的正面朝上，排成八列。通过从这八列中移牌来创建四叠牌：' },
+                    { listItem: '左上角是四个“可用单元”，移牌时可以在其中临时放牌。' },
+                    { listItem: '右上角是四个“回收单元”，在其中构建获胜所需的牌叠。' },
+                ]
+            },
+            {
+                title: '具体玩法',
+                list: [
+                    { listItem: '空当接龙仅使用一副牌玩，共 52 张，牌的正面朝上，排成八列。通过从这八列中移牌来创建四叠牌：' },
+                    { listItem: '从列到可用单元。每个可用单元一次只能放一张牌。' },
+                    { listItem: '从列到列（或从可用单元到列）。在列中必须按降序依次放牌，而且红黑花色交替。' },
+                    { listItem: '从列到回收单元。每叠牌必须由同一花色组成，并从 A 开始。' },
+                    { listItem: '每一列中只能移动最下面的牌，被压住的牌是不能直接移动的。左上的中转单元中的牌都可以移动 。' },
+                ]
+            }
+        ]
+        // console.log(datas, 'createRules')
+
+        $.each(datas, function (index, value) {
+            var div = ''
+            $('.box-rules').append('<div class="rule-title color-y fontSize16">' + value.title + '</div>')
+            var titleDiv = $('.box-rules .rule-title:last'); // 获取最后添加的标题元素
+            $.each(value.list, function (index1, value1) {
+                div += '<div class="rule-title-list color-w fontSize16">' + value1.listItem + '</div>'
+            });
+            titleDiv.after(div)
+        });
+    }
+    $('.click-rule').click(function () {
+        event.stopPropagation(); // 阻止事件冒泡
+        $('.box-rules').show();
+        $('.click-rule').hide();
+        $('.main-content').hide();
+    });
+    $('.content').click(function () {
+        $('.box-rules').hide();
+        $('.click-rule').show();
+        $('.main-content').show();
+    });
+    // 自由区域
+    for (var i = 0; i < 4; i++) {
+        var card_x = main_left + parseInt(i * (card_width + 4));
+        var divs = $('<div class="free_item" index=' + i + ' card_index="*" style="position:absolute;width:' + (card_width + 2) + 'px;height:' + (card_height + 2) + 'px;top:1rem;"></div>');
+        $('.main-top').append(divs);
+        $(divs).css('left', card_x + 'px');
+        $(divs).css('border', '2px solid #888888');
+    }
+    // 锁定区域
+    for (var i = 0; i < 4; i++) {
+        var card_x = main_left + parseInt(5 * card_width + i * (card_width + 4));
+        var divs = $('<div class="final_item" index=' + i + ' code="' + ['A', 'B', 'C', 'D'][i] + '" card_index="*" card_count=0 style="position:absolute;width:' + (card_width + 2) + 'px;height:' + (card_height + 2) + 'px;top:1rem;"></div>');
+        $('.main-top').append(divs);
+        $(divs).css('left', card_x + 'px');
+        $(divs).css('border', '2px solid #888888');
+    }
+    // 发牌区
+    for (var i = 0; i < 8; i++) {
+        var card_x = main_left + parseInt(i * (card_width + card_width / 7 + 1));
+        var divs = $('<div class="card_content" index=' + i + ' pos=0 style="position:absolute;width:' + card_width + 'px;top:' + 1.5 * card_height + 'px;margin:auto;background:#111111;"></div>');
+        $('.main-top').append(divs);
+        $(divs).css('left', card_x + 'px');
+        $(divs).css('height', card_height * 3.2 + 'px');
+        $(divs).css('border-left', '2px solid #111111');
+        $(divs).css('border-right', '2px solid #111111');
+    }
+
+    // 给牌编号
+    for (var i = 0; i < 52; i++) {
+        var t = parseInt(i / 13);
+        var n = i % 13 + 1;
+        n = n >= 10 ? n : ('0' + n);
+        cards_lib.push(['A', 'B', 'C', 'D'][t] + n);
+    }
+
+    // 点击-开始
+    $('.game-start').click(function () {
+        init_cards = [];
+        var temp_lib = [];
+        $.each(cards_lib, function (index, value) {
+            temp_lib.push(value)
+        })
+        console.log(temp_lib, 'temp_lib'); // 初始化牌组
+
+        for (var i = 0; i < 52; i++) {
+            var x = parseInt(Math.random() * (52 - i));  // 随机打乱
+            init_cards.push(temp_lib[x]);
+            temp_lib.splice(x, 1);
+        }
+        console.log(init_cards, 'init_cards');
+        $('.game-replay').show();
+        $('.game-share').show();
+
+        gameStart();
+    });
+    function gameStart() {
+        for (var j = 0; j < 7; j++) { // 每张牌垂直位置
+            var card_y = 1.5 * card_height + j * 0.3 * card_height;
+            // console.log(card_y)
+
+            for (var i = 0; i < 8; i++) { // 8排
+                var card_x = main_left + parseInt(i * (card_width + card_width / 7 + 1));
+                if (j * 8 + i < 52) {
+                    var card_index = init_cards[j * 8 + i]; // 取出 每列随机排 
+                    var divs = $('<div class="card_item" i =' + i + ' j=' + j + ' card_index="' + card_index + '" state=0 pos=0 style="position:absolute;width:' + card_width + 'px;height:' + card_height + 'px;top:' + card_y + 'px;"> </div>') // j 第几列 i 第几个 
+                    $('.main-top').append(divs);
+                    $(divs).css('left', card_x + 'px');
+                    $(divs).css('background', 'url(http://www.zhibx.net/test/img/cards/' + card_index + '.jpg) center no-repeat');
+                    $(divs).css('background-size', '100% auto');
+                    $(divs).css('border', '1px solid transparent');
+                    $(divs).css('border-radius', '4px');
+                    $(divs).css('z-index', j);
+                    $(divs).css('transition', 'all 0.2s ease-in-out');
+                }
+            }
+
+        }
+
+        // 处理交换
+        $('.card_item').click(function (e) {
+            e.stopPropagation();
+
+            // 获取所在的行和列以及状态
+            var i = $(this).attr('i');
+            var j = $(this).attr('j');
+            var state = $(this).attr('state');
+            var pos = $(this).attr('pos');
+            var card_index = $(this).attr('card_index');
+            console.log('当前点击:', 'i:' + i, 'j:' + j, 'state:' + state, 'pos:', +pos, 'card_index:' + card_index)
+
+            var move_count = $('.card_item[state=1]').length; // 已经被第一次选中 --> 处理选中逻辑
+            // console.log(move_count)
+
+            if (move_count == 0) {  // 暂未第一次选择state不存在1 move_count=0
+                var x = j;
+                var card_indexs = [];
+
+                // 1、选中的以下全部加入数组
+                while ($('.card_item[i=' + i + '][j=' + x + ']').length > 0) {
+                    var value = $('.card_item[i=' + i + '][j=' + x + ']');
+                    if ((x == j) || (x > j && pos == 0)) {
+                        card_indexs.push($(value).attr('card_index'));
+                    }
+                    x++;
+                }
+                console.log('select 数组' + JSON.stringify(card_indexs));
+
+                // 判断1:数组内存在多个内容的时候，进行规则判断是否应该被选中
+                if (!check_card_rule(card_indexs)) {
+                    console.log('select invalid!');
+                    return;
+                }
+
+                // 2、选中样式状态处理
+                var x = j;
+                console.log($('.card_item[i=' + i + '][j=' + x + ']').length > 0)
+                while ($('.card_item[i=' + i + '][j=' + x + ']').length > 0) {
+                    var value = $('.card_item[i=' + i + '][j=' + x + ']');
+                    if ((x == j) || (x > j && pos == 0)) {
+                        $(value).css('border', '1px solid yellow');
+                        $(value).attr('state', 1);
+                        $(value).css('z-index', 99 + parseInt(x));
+                    }
+                    x++;
+                }
+                return
+
+            } else { // 已经被第一次选中,state=1已经存在 --> 处理交换逻辑
+                var old_i = $($('.card_item[state=1]')[0]).attr('i');
+                var old_pos = $($('.card_item[state=1]')[0]).attr('pos');
+
+                var min_j = 99;
+                $.each($('.card_item[state=1]'), function (index, value) {
+                    if (parseInt($(value).attr('j')) < min_j) {
+                        min_j = parseInt($(value).attr('j'));
+                        console.log(min_j)
+                    }
+                })
+                var card_indexs = [];
+				if (pos == 0) {
+					var n = $('.card_item[i=' + i + '][pos=0]').length;
+					var card_index = $('.card_item[i=' + i + '][j=' + (n - 1) + ']').attr('card_index');
+					console.log('push target:' + card_index);
+					card_indexs.push(card_index);
+				}
+                var x = min_j;
+				while ($('.card_item[i=' + old_i + '][j=' + x + '][state=1]').length > 0) {
+					var value = $('.card_item[i=' + old_i + '][j=' + x + '][state=1]');
+					if ((x == min_j) || (x > min_j && pos == 0)) {
+						card_indexs.push($(value).attr('card_index'));
+					}
+					x++;
+				}
+                if (!check_card_rule(card_indexs)) {//判断是否可以放置
+					console.log('target invalid!');
+					$('.card_item').css('border', '1px solid transparent');
+					$('.card_item').attr('state', 0);
+					// refresh_card_index();
+					return;
+				}
+               
+                // 处理交换逻辑
+                var x = min_j;
+                while ($('.card_item[i=' + old_i + '][j=' + min_j + '][state=1]').length > 0) {
+                    var value = $('.card_item[i=' + old_i + '][j=' + min_j + '][state=1]');
+                    var n = $('.card_item[i=' + i + '][pos=0]').length;
+                    console.log('move (' + old_i + ',' + min_j + ') to (' + i + ',' + n + ')');
+                    var card_x = main_left + parseInt(i * (card_width + card_width / 7 + 1));
+                    var card_y = 1.5 * card_height + n * 0.3 * card_height;
+
+                    $(value).css('left', card_x + 'px');
+                    $(value).css('top', card_y + 'px');
+                    $(value).css('border', '1px solid transparent');
+                    $(value).attr('state', 0);
+                    $(value).attr('i', i);
+                    $(value).attr('j', n);
+                    $(value).attr('pos', 0);
+                    $(value).css('z-index', n);
+
+                    var card_index = $(value).attr('card_index');
+                    $('.free_item[card_index="' + card_index + '"]').attr('card_index', '*');
+                    x++;
+                }
+                
+
+            }
+        })
+    }
+    function check_card_rule(card_indexs) {
+        var result = true;
+        var card_index = '';
+        $.each(card_indexs, function (index, value) {
+            if (card_index == '') {
+                card_index = value;
+                console.log(card_index)
+                return;
+            }
+            // console.log(card_indexs, 'card_indexs')
+            var A1 = card_index.substring(0, 1);
+            var B1 = card_index.substring(1, 3);
+            var A2 = value.substring(0, 1);
+            var B2 = value.substring(1, 3);
+            var A_diff = Math.abs(A1.charCodeAt(0) - A2.charCodeAt(0));
+            console.log('A_diff=' + A_diff);
+            if (A_diff % 2 == 0) { result = false; return false; }
+            if (parseInt(B1) - parseInt(B2) != 1) { result = false; return false; } // 判断 5-4 != 1 
+            card_index = value;
+        })
+        return result;
+
+    }
+
+</script>
+
+</html>

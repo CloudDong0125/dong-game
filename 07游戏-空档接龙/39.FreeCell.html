@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport"
+		content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+	<script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+	<title>业余练习</title>
+	<style>
+		.rs-css {
+			display: inline-block;
+			min-width: 2.5rem;
+			text-align: center;
+			height: 1.2rem;
+			line-height: 1.2rem;
+			margin: 0.2rem 0.5rem 0.2rem 0;
+			padding: 0.5rem 0.5rem;
+			border: 1px solid #e0e0e0;
+			border-radius: 0.2rem;
+			color: #aaaaaa;
+			user-select: none;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body style="margin:0;padding:0;background:black;">
+	<div id="content"
+		style="position:absolute;left:0;top:0;right:0;bottom:0;margin:auto;overflow:hidden;user-select:none;">
+		<table border=0 rules=none style="width:100%;height:100%;margin:0;text-align:center;" cellspacing=0
+			cellpadding=0>
+			<tr>
+				<td class="main_top" style="position:relative;"></td>
+			</tr>
+			<tr>
+				<td class="main_center" style="position:relative;"></td>
+			</tr>
+			<tr style="height:6rem;">
+				<td class="main_bottom" style="position:relative;">
+					<div class="game_start"
+						style="display:inline-block;width:8rem;height:3rem;line-height:3rem;left:0;right:0;bottom:1rem;margin:auto 2rem;text-align:center;background:darkorange;color:white;border-radius:0.5rem;cursor:pointer;user-select:none;">
+						开　始</div>
+					<div class="game_replay"
+						style="display:inline-block;width:8rem;height:3rem;line-height:3rem;left:0;right:0;bottom:1rem;margin:auto 2rem;text-align:center;background:darkorange;color:white;border-radius:0.5rem;cursor:pointer;user-select:none;">
+						重　玩</div>
+					<div class="game_share"
+						style="display:inline-block;width:8rem;height:3rem;line-height:3rem;left:0;right:0;bottom:1rem;margin:auto 2rem;text-align:center;background:darkorange;color:white;border-radius:0.5rem;cursor:pointer;user-select:none;">
+						分　享</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="help_icon"
+		style="position:absolute;left:2rem;top:2rem;margin:auto;width:16rem;height:3rem;color:white;user-select:none;cursor:pointer;">
+		☉ 游戏规则</div>
+	<div id="help"
+		style="display:none;position:absolute;left:0;top:0;right:0;bottom:0;margin:auto;background:black;color:white;overflow:hidden;user-select:none;">
+		<table style="width:80%;height:100%;margin:auto;">
+			<tr>
+				<td>　</td>
+			</tr>
+			<tr>
+				<td style="color:yellow;font-weight:700">游戏目标</td>
+			</tr>
+			<tr>
+				<td>在四个回收单元中各创建一叠牌，每叠 13 张，且花色相同。每叠牌必须按从小 (A) 到大 (K) 的顺序排列。 </td>
+			</tr>
+			<tr>
+				<td style="color:yellow;font-weight:700">玩牌方式</td>
+			</tr>
+			<tr>
+				<td>空当接龙仅使用一副牌玩，共 52 张，牌的正面朝上，排成八列。通过从这八列中移牌来创建四叠牌：</td>
+			</tr>
+			<tr>
+				<td>左上角是四个“可用单元”，移牌时可以在其中临时放牌。</td>
+			</tr>
+			<tr>
+				<td>右上角是四个“回收单元”，在其中构建获胜所需的牌叠。</td>
+			</tr>
+			<tr>
+				<td style="color:yellow;font-weight:700">具体玩法</td>
+			</tr>
+			<tr>
+				<td>从每列底部拖牌，并按以下方式移动：</td>
+			</tr>
+			<tr>
+				<td>从列到可用单元。每个可用单元一次只能放一张牌。</td>
+			</tr>
+			<tr>
+				<td>从列到列（或从可用单元到列）。在列中必须按降序依次放牌，而且红黑花色交替。</td>
+			</tr>
+			<tr>
+				<td>从列到回收单元。每叠牌必须由同一花色组成，并从 A 开始。</td>
+			</tr>
+			<tr>
+				<td>每一列中只能移动最下面的牌，被压住的牌是不能直接移动的。左上的中转单元中的牌都可以移动 。</td>
+			</tr>
+			<tr>
+				<td>　</td>
+			</tr>
+		</table>
+	</div>
+</body>
+
+</html>
+
+<script type="text/javascript">
+	(function (doc, win) {
+		var docEl = win.document.documentElement;
+		var resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize';
+		/**
+				* ================================================
+				*   设置根元素font-size
+				* 当设备宽度为375(iPhone6)时，根元素font-size=16px; 
+				× ================================================
+				*/
+		var refreshRem = function () {
+			var clientWidth = win.innerWidth
+				|| doc.documentElement.clientWidth
+				|| doc.body.clientWidth;
+			var clientHeight = win.innerHeight
+				|| doc.documentElement.clientHeight
+				|| doc.body.clientHeight;
+
+			$('.cover').remove();
+			var base_size = 1200;
+			if (clientWidth < clientHeight) {
+				//$('body').append('<div class="cover" style="position:absolute;left:0;top:0;right:0;bottom:0;margin:0;background:transparent;"></div>');
+				//ShowHint('请在横屏环境下体验！');				
+				//return;
+				//base_size=1200;
+			}
+			//console.log(clientWidth)
+			if (!clientWidth) return;
+			var fz;
+			var Width = clientWidth;
+			var Height = clientWidth;
+			fz = 16 * Width / base_size;
+			if (clientWidth > clientHeight) fz = 16 * Height / base_size;
+			docEl.style.fontSize = fz + 'px';
+		};
+
+		if (!doc.addEventListener) return;
+		win.addEventListener(resizeEvt, refreshRem, false);
+		doc.addEventListener('DOMContentLoaded', refreshRem, false);
+		refreshRem();
+
+	})(document, window);
+
+
+	function remvalue() {
+		var remstr = window.getComputedStyle(document.documentElement)["fontSize"];
+		remstr = remstr.substring(remstr, remstr.length - 2);
+		return remstr * 1.0;
+	}
+
+	console.log('remvalue()=' + remvalue());
+
+
+	$('#help_icon').click(function () {
+		$('#help').show();
+	});
+
+	$('#help').click(function () {
+		$('#help').hide();
+	});
+
+	var play_moving = 0;
+	var winW = $(window).width();
+	var winH = $(window).height();
+	var card_height = 6 * remvalue();
+	var card_width = parseInt(card_height * 106 / 150);
+	var main_width = $('.main_center').width();
+	var main_left = parseInt(main_width - 9 * card_width) / 2;
+	var cards_lib = [];
+	var init_cards = [];
+	var old_game_init_cards = window.localStorage.getItem('free_cell_init_cards');
+	var share_init_card = getUrlParam('code');
+	console.log(old_game_init_cards);
+
+	console.log(winW, winH, card_height, card_width, main_width, main_left);
+	$('.game_replay').hide();
+	if (old_game_init_cards != null) {
+		if (isJSON(old_game_init_cards)) {
+			old_game_init_cards = JSON.parse(old_game_init_cards);
+			$('.game_replay').show();
+		}
+	}
+
+	if (winW > winH) {
+		$('#content').css('width', 1.25 * winH + 'px');
+		$('#content').css('height', winH + 'px');
+		main_left = main_left - (winW - 1.25 * winH) / 2 - 0.4 * remvalue();
+		$('#help_icon').css('font-size', '1rem');
+		$('#help_icon').css('width', '6rem');
+	}
+	else {
+		$('#content').css('width', winW + 'px');
+		$('#content').css('height', 0.8 * winW + 'px');
+		$('#content').css('bottom', '20%');
+		$('#help').css('font-size', '3rem');
+		$('#help_icon').css('font-size', '3rem');
+		$('#help_icon').css('width', '16rem');
+		$('#help_icon').css('top', '10rem');
+		$('#help_icon').css('right', '2rem');
+	}
+	$('.main_center').css('height', card_height * 5.25 + 'px');
+
+	for (var i = 0; i < 52; i++) {
+		var t = parseInt(i / 13);
+		var n = i % 13 + 1;
+		n = n >= 10 ? n : ('0' + n);
+		cards_lib.push(['A', 'B', 'C', 'D'][t] + n);
+	}
+
+	$('.main_center').empty();
+
+	for (var i = 0; i < 4; i++) {
+		var card_x = main_left + parseInt(i * (card_width + 4));
+
+		var divs = $('<div class="free_item" index=' + i + ' card_index="*" style="position:absolute;width:' + (card_width + 2) + 'px;height:' + (card_height + 2) + 'px;top:1rem;"></div>');
+		$('.main_center').append(divs);
+		$(divs).css('left', card_x + 'px');
+		$(divs).css('border', '2px solid #888888');
+	}
+
+	for (var i = 0; i < 4; i++) {
+		var card_x = main_left + parseInt(5 * card_width + i * (card_width + 4));
+
+		var divs = $('<div class="final_item" index=' + i + ' code="' + ['A', 'B', 'C', 'D'][i] + '" card_index="*" card_count=0 style="position:absolute;width:' + (card_width + 2) + 'px;height:' + (card_height + 2) + 'px;top:1rem;"></div>');
+		$('.main_center').append(divs);
+		$(divs).css('left', card_x + 'px');
+		//$(divs).css('background','url(http://www.zhibx.net/test/img/cards/A01.jpg) center top no-repeat');
+		//$(divs).css('background-size','100% auto');
+		$(divs).css('border', '2px solid #888888');
+	}
+
+	for (var i = 0; i < 8; i++) {
+		var card_x = main_left + parseInt(i * (card_width + card_width / 7 + 1));
+		var divs = $('<div class="card_content" index=' + i + ' pos=0 style="position:absolute;width:' + card_width + 'px;top:' + 1.5 * card_height + 'px;margin:auto;background:#111111;"></div>');
+		$('.main_center').append(divs);
+		$(divs).css('left', card_x + 'px');
+		$(divs).css('height', card_height * 3.2 + 'px');
+		$(divs).css('border-left', '2px solid #111111');
+		$(divs).css('border-right', '2px solid #111111');
+	}
+
+	$('.game_start').click(function () {
+		init_cards = [];
+		var temp_lib = [];
+		$.each(cards_lib, function (index, value) {
+			temp_lib.push(value);
+		});
+		for (var i = 0; i < 52; i++) {
+			var x = parseInt(Math.random() * (52 - i));
+			init_cards.push(temp_lib[x]);
+			temp_lib.splice(x, 1);
+		}
+		console.log(init_cards, 'init_cards');
+		console.log(temp_lib, 'temp_lib')
+		window.localStorage.setItem('free_cell_init_cards', JSON.stringify(init_cards));
+		$('.game_replay').show();
+		game_start();
+	});
+
+	$('.game_replay').click(function () {
+		init_cards = old_game_init_cards;
+		game_start();
+	});
+
+	if (share_init_card != null && share_init_card != '') {
+		//console.log('share_init_card1'+share_init_card);
+		var share_init_card = hexCharCodeToStr(share_init_card);
+		//console.log('share_init_card2'+share_init_card);
+		if (isJSON(share_init_card)) {
+			//console.log('share_init_card ok!');
+			old_game_init_cards = JSON.parse(share_init_card);
+			$('.game_replay').click();
+		}
+	}
+
+	$('.game_share').click(function () {
+		var hex = strToHexCharCode(JSON.stringify(init_cards));
+		//console.log('hex='+hex);
+		copyToClipboard('http://www.zhibx.net/test/39.FreeCell.html?code=' + hex);
+	});
+
+	$('.main_center').click(function (e) {
+		$('.card_item').css('border', '1px solid transparent');
+		$('.free_item').attr('state', 0);
+		refresh_card_index();
+	});
+
+	function game_start() {
+		//初始化
+		$('.card_item').remove();
+		$('.free_item').attr('card_index', '*');
+		$('.final_item').attr('card_index', '*');
+		$('.final_item').attr('card_count', 0);
+
+		$('.game_share').show();
+
+		//console.log('init_cards='+JSON.stringify(init_cards));
+
+
+		for (var j = 0; j < 7; j++) {
+			var card_y = 1.5 * card_height + j * 0.3 * card_height;
+
+			for (var i = 0; i < 8; i++) {
+				var card_x = main_left + parseInt(i * (card_width + card_width / 7 + 1));
+
+				if (j * 8 + i < 52) {
+					var card_index = init_cards[j * 8 + i];
+					var divs = $('<div class="card_item" i=' + i + ' j=' + j + ' state=0 pos=0 card_index="' + card_index + '" style="position:absolute;width:' + card_width + 'px;height:' + card_height + 'px;top:' + card_y + 'px;"></div>');
+					$('.main_center').append(divs);
+					$(divs).css('left', card_x + 'px');
+					$(divs).css('background', 'url(http://www.zhibx.net/test/img/cards/' + card_index + '.jpg) center no-repeat');
+					$(divs).css('background-size', '100% auto');
+					$(divs).css('border', '1px solid transparent');
+					$(divs).css('border-radius', '4px');
+					$(divs).css('z-index', j);
+					$(divs).css('transition', 'all 0.2s ease-in-out');
+				}
+			}
+		}
+
+
+		$('.card_item').click(function (e) {
+			e.stopPropagation();
+			var i = $(this).attr('i');
+			var j = $(this).attr('j');
+			var state = $(this).attr('state');
+			var pos = $(this).attr('pos');
+			if (pos == 2) return;
+			var move_count = $('.card_item[state=1]').length;
+			console.log(move_count)
+			if (move_count == 0) {
+				var x = j;
+				var card_indexs = [];
+				while ($('.card_item[i=' + i + '][j=' + x + ']').length > 0) {
+					var value = $('.card_item[i=' + i + '][j=' + x + ']');
+					if ((x == j) || (x > j && pos == 0)) {
+						card_indexs.push($(value).attr('card_index'));
+					}
+					x++;
+				}
+				console.log('select card_indexs='+JSON.stringify(card_indexs));
+				if (!check_card_rule(card_indexs)) {//判断选中的牌是否符合规则
+					console.log('select invalid!');
+					return;
+				}
+				var x = j;
+				while ($('.card_item[i=' + i + '][j=' + x + ']').length > 0) {
+					var value = $('.card_item[i=' + i + '][j=' + x + ']');
+					if ((x == j) || (x > j && pos == 0)) {
+						$(value).css('border', '1px solid yellow');
+						$(value).attr('state', 1);
+						$(value).css('z-index', 99 + parseInt(x));
+					}
+					x++;
+				}
+				return
+			}
+
+			else {
+				console.log(pos)
+				// // return;
+				// if (pos == 1) {
+				// 	$('.card_item').css('border', '1px solid transparent');
+				// 	$('.card_item').attr('state', 0);
+				// 	refresh_card_index();
+				// 	$(this).css('border', '1px solid yellow');
+				// 	$(this).attr('state', 1);
+				// 	$(this).css('z-index', 99 + parseInt($(this).attr('j')));
+				// 	return;
+				// }
+				var old_i = $($('.card_item[state=1]')[0]).attr('i');
+				var old_pos = $($('.card_item[state=1]')[0]).attr('pos');
+
+
+				var min_j = 99;
+				$.each($('.card_item[state=1]'), function (index, value) {
+					if (parseInt($(value).attr('j')) < min_j) {
+						min_j = parseInt($(value).attr('j'));
+						console.log(min_j)
+					}
+				});
+
+				// if (old_i == i && old_pos == pos) {
+				// 	$('.card_item').css('border', '1px solid transparent');
+				// 	$('.card_item').attr('state', 0);
+				// 	refresh_card_index();
+				// 	$(this).click();
+				// 	return;
+				// }
+
+				var card_indexs = [];
+				if (pos == 0) {
+					var n = $('.card_item[i=' + i + '][pos=0]').length;
+					var card_index = $('.card_item[i=' + i + '][j=' + (n - 1) + ']').attr('card_index');
+					console.log('push target:' + card_index);
+					card_indexs.push(card_index);
+				}
+				var x = min_j;
+				while ($('.card_item[i=' + old_i + '][j=' + x + '][state=1]').length > 0) {
+					var value = $('.card_item[i=' + old_i + '][j=' + x + '][state=1]');
+					if ((x == min_j) || (x > min_j && pos == 0)) {
+						card_indexs.push($(value).attr('card_index'));
+					}
+					x++;
+				}
+				if (!check_free_cell(move_count, 0)) {//判断空挡个数是否支持移动选中的牌
+					console.log('free cell not enough!');
+					$('.card_item').css('border', '1px solid transparent');
+					$('.card_item').attr('state', 0);
+					refresh_card_index();
+					return;
+				}
+				console.log('target card_indexs=' + JSON.stringify(card_indexs));
+				if (!check_card_rule(card_indexs)) {//判断是否可以放置
+					console.log('target invalid!');
+					$('.card_item').css('border', '1px solid transparent');
+					$('.card_item').attr('state', 0);
+					refresh_card_index();
+					return;
+				}
+				var x = min_j;
+				while ($('.card_item[i=' + old_i + '][j=' + x + '][state=1]').length > 0) {
+					var value = $('.card_item[i=' + old_i + '][j=' + x + '][state=1]');
+					var n = $('.card_item[i=' + i + '][pos=0]').length;
+					console.log('move (' + old_i + ',' + x + ') to (' + i + ',' + n + ')');
+					var card_x = main_left + parseInt(i * (card_width + card_width / 7 + 1));
+					var card_y = 1.5 * card_height + n * 0.3 * card_height;
+
+					$(value).css('left', card_x + 'px');
+					$(value).css('top', card_y + 'px');
+					$(value).css('border', '1px solid transparent');
+					$(value).attr('state', 0);
+					$(value).attr('i', i);
+					$(value).attr('j', n);
+					$(value).attr('pos', 0);
+					$(value).css('z-index', n);
+
+					var card_index = $(value).attr('card_index');
+					$('.free_item[card_index="' + card_index + '"]').attr('card_index', '*');
+					x++;
+				}
+				check_final_card();
+			}
+		});
+
+		$('.card_item').dblclick(function (e) {
+			e.stopPropagation();
+			var pos = $(this).attr('pos');
+			if (pos == 1 || pos == 2) return;
+			if ($('.free_item[card_index="*"]').length == 0) return;
+			var i = $(this).attr('i');
+			var j = $(this).attr('j');
+			if (j < $('.card_item[i=' + i + '][pos=0]').length - 1) return;
+			$('.card_item').css('border', '1px solid transparent');
+			$('.card_item').attr('state', 0);
+			refresh_card_index();
+			$(this).css('border', '1px solid yellow');
+			$(this).attr('state', 1);
+			$(this).css('z-index', 99 + parseInt($(this).attr('j')));
+			$($('.free_item[card_index="*"]')[0]).click();
+			check_final_card();
+		});
+	}
+
+	$('.free_item').click(function (e) {
+		e.stopPropagation();
+		var i = $(this).attr('index');
+
+		if ($('.card_item[state=1]').length == 0) {
+			var card_index = $(this).attr('card_index');
+			if (card_index != '') {
+				var value = $('.card_item[card_index="' + card_index + '"]');
+				$(value).css('border', '1px solid yellow');
+				$(value).attr('state', 1);
+				$(value).css('z-index', +parseInt($(value).attr('j')));
+			}
+		}
+		if ($('.card_item[state=1]').length == 1) {
+			var card_index = $(this).attr('card_index');
+			if (card_index != '*') return;
+			var value = $('.card_item[state=1]');
+			var pos = $(value).attr('pos');
+			if (pos == 1 || pos == 2) {
+				$('.card_item').css('border', '1px solid transparent');
+				$('.card_item').attr('state', 0);
+				refresh_card_index();
+				return;
+			}
+			var card_x = main_left + parseInt(i * (card_width + 4)) + 2;
+			var card_y = remvalue() + 2;
+
+			$(value).css('left', card_x + 'px');
+			$(value).css('top', card_y + 'px');
+			$(value).css('border', '1px solid transparent');
+			$(value).attr('state', 0);
+			$(value).attr('pos', 1);
+			$(value).attr('i', i);
+			$(value).attr('j', -1);
+			$(value).css('z-index', 0);
+			$(this).attr('card_index', $(value).attr('card_index'));
+			check_final_card();
+		}
+	});
+
+	$('.card_content').click(function (e) {
+		e.stopPropagation();
+		var i = $(this).attr('index');
+		var pos = 0;
+		var move_count = $('.card_item[state=1]').length;
+
+		if (move_count >= 1) {
+			var old_i = $($('.card_item[state=1]')[0]).attr('i');
+			var old_pos = $($('.card_item[state=1]')[0]).attr('pos');
+
+			if (old_i == i && old_pos == pos) {
+				$('.card_item').css('border', '1px solid transparent');
+				$('.card_item').attr('state', 0);
+				check_final_card();
+				return;
+			}
+
+			var min_j = 99;
+			$.each($('.card_item[state=1]'), function (index, value) {
+				if (parseInt($(value).attr('j')) < min_j) min_j = parseInt($(value).attr('j'));
+			});
+
+			var card_indexs = [];
+			if (pos == 0) {
+				var n = $('.card_item[i=' + i + '][pos=0]').length;
+				var card_index = "";
+				if (n > 0) card_index = $('.card_item[i=' + i + '][j=' + (n - 1) + ']').attr('card_index');
+				console.log('push target:' + card_index);
+				card_indexs.push(card_index);
+			}
+			var x = min_j;
+			while ($('.card_item[i=' + old_i + '][j=' + x + '][state=1]').length > 0) {
+				var value = $('.card_item[i=' + old_i + '][j=' + x + '][state=1]');
+				if ((x == min_j) || (x > min_j && pos == 0)) {
+					card_indexs.push($(value).attr('card_index'));
+				}
+				x++;
+			}
+			if (!check_free_cell(move_count, -1)) {//判断空挡个数是否支持移动选中的牌
+				console.log('free cell not enough!');
+				$('.card_item').css('border', '1px solid transparent');
+				$('.card_item').attr('state', 0);
+				refresh_card_index();
+				return;
+			}
+			console.log('target card_indexs=' + JSON.stringify(card_indexs));
+			if (!check_card_rule(card_indexs)) {//判断是否可以放置
+				console.log('target invalid!');
+				$('.card_item').css('border', '1px solid transparent');
+				$('.card_item').attr('state', 0);
+				refresh_card_index();
+				return;
+			}
+			var x = min_j;
+			while ($('.card_item[i=' + old_i + '][j=' + x + '][state=1]').length > 0) {
+				var n = $('.card_item[i=' + i + '][pos=0]').length;
+				var value = $('.card_item[i=' + old_i + '][j=' + x + '][state=1]');
+				console.log('move (' + old_i + ',' + x + ') to (' + i + ',' + n + ')');
+				var card_x = main_left + parseInt(i * (card_width + card_width / 7 + 1));
+				var card_y = 1.5 * card_height + n * 0.3 * card_height;
+
+				$(value).css('left', card_x + 'px');
+				$(value).css('top', card_y + 'px');
+				$(value).css('border', '1px solid transparent');
+				$(value).attr('state', 0);
+				$(value).attr('i', i);
+				$(value).attr('j', n);
+				$(value).attr('pos', 0);
+				$(value).css('z-index', n);
+
+				var card_index = $(value).attr('card_index');
+				$('.free_item[card_index="' + card_index + '"]').attr('card_index', '*');
+				x++;
+			}
+			check_final_card();
+		}
+	});
+
+	function refresh_card_index() {
+		for (var i = 0; i < 8; i++) {
+			var n = $('.card_item[i=' + i + '][pos=0]').length;
+			for (var j = 0; j < n; j++) {
+				$('.card_item[i=' + i + '][j=' + j + '][pos=0]').css('z-index', j);
+			}
+		}
+	}
+
+	function check_final_card() {
+		var isChange = false;
+		for (var i = 0; i < 8; i++) {
+			var n = $('.card_item[i=' + i + '][pos=0]').length;
+			if (n > 0) {
+				var last_card = $('.card_item[i=' + i + '][j=' + (n - 1) + ']').attr('card_index');
+				//console.log('last_card['+i+']='+last_card);
+				var A1 = last_card.substring(0, 1);
+				var B1 = last_card.substring(1, 3);
+				var T0 = $('.final_item[code="' + A1 + '"]').attr('card_index');
+				var B2 = '00';
+				if (T0 != '*') B2 = T0.substring(1, 3);
+				if (parseInt(B1) - parseInt(B2) == 1) {
+					var value = $('.card_item[card_index="' + last_card + '"]');
+					var final_i = $('.final_item[code="' + A1 + '"]').attr('index');
+					var card_x = main_left + parseInt(5 * card_width + final_i * (card_width + 4)) + 2;
+					var card_y = remvalue() + 2;
+					var card_count = $('.final_item[code="' + A1 + '"]').attr('card_count');
+					card_count++;
+
+					$(value).css('left', card_x + 'px');
+					$(value).css('top', card_y + 'px');
+					$(value).css('border', '1px solid transparent');
+					$(value).attr('state', 0);
+					$(value).attr('pos', 2);
+					$(value).attr('j', -2);
+					$(value).css('z-index', card_count);
+					$('.final_item[code="' + A1 + '"]').attr('card_index', last_card);
+					$('.final_item[code="' + A1 + '"]').attr('card_count', card_count);
+					isChange = true;
+				}
+			}
+		}
+
+		for (var i = 0; i < 4; i++) {
+			var free_card = $('.free_item[index=' + i + ']').attr('card_index');
+			if (free_card == '*') return;
+			var A1 = free_card.substring(0, 1);
+			var B1 = free_card.substring(1, 3);
+			var T0 = $('.final_item[code="' + A1 + '"]').attr('card_index');
+			var B2 = '00';
+			if (T0 != '*') B2 = T0.substring(1, 3);
+			console.log('A1=' + A1 + ',B1=' + B1 + ',T0=' + T0 + ',B2=' + B2);
+			if (parseInt(B1) - parseInt(B2) == 1) {
+				var value = $('.card_item[card_index="' + free_card + '"]');
+				var final_i = $('.final_item[code="' + A1 + '"]').attr('index');
+				var card_x = main_left + parseInt(5 * card_width + final_i * (card_width + 4)) + 2;
+				var card_y = remvalue() + 2;
+				var card_count = $('.final_item[code="' + A1 + '"]').attr('card_count');
+				card_count++;
+
+				$(value).css('left', card_x + 'px');
+				$(value).css('top', card_y + 'px');
+				$(value).css('border', '1px solid transparent');
+				$(value).attr('state', 0);
+				$(value).attr('pos', 2);
+				$(value).attr('j', -2);
+				$(value).css('z-index', card_count);
+				$('.final_item[code="' + A1 + '"]').attr('card_index', free_card);
+				$('.final_item[code="' + A1 + '"]').attr('card_count', card_count);
+				$('.free_item[index=' + i + ']').attr('card_index', '*');
+
+				isChange = true;
+			}
+		}
+		if (isChange) {
+			check_game_state();
+			check_final_card();
+		}
+		refresh_card_index();
+	}
+
+	function check_card_rule(card_indexs) {
+		var result = true;
+		var card_index = '';
+		$.each(card_indexs, function (index, value) {
+			if (card_index == '') {
+				card_index = value;
+				return;
+			}
+			var A1 = card_index.substring(0, 1);
+			var B1 = card_index.substring(1, 3);
+			var A2 = value.substring(0, 1);
+			var B2 = value.substring(1, 3);
+			/*
+			if((A1=='A'||A1=='C')&&(A2=='A'||A2=='C')) {result=false; return false;}
+			if((A1=='B'||A1=='D')&&(A2=='B'||A2=='D')) {result=false; return false;}
+			if(parseInt(B1)-parseInt(B2)!=1) {result=false; return false;}
+			*/
+			var A_diff = Math.abs(A1.charCodeAt(0) - A2.charCodeAt(0));
+			console.log('A_diff=' + A_diff);
+			if (A_diff % 2 == 0) { result = false; return false; }
+			if (parseInt(B1) - parseInt(B2) != 1) { result = false; return false; }
+			card_index = value;
+		});
+
+		return result;
+	}
+
+	function check_free_cell(move_count, x) {
+		var result = true;
+		if (move_count > 1) {
+			var free1 = x;
+			var free2 = 0;
+			var free_count = 0;
+			for (var i = 0; i < 8; i++) {
+				var n = $('.card_item[i=' + i + '][pos=0]').length;
+				if (n == 0) free1++;
+			}
+			for (var i = 0; i < 4; i++) {
+				var free_card = $('.free_item[index=' + i + ']').attr('card_index');
+				if (free_card == '*') free2++;
+			}
+			free_count = (free1 + free2) * 2;
+			if (free1 == 0) free_count = free2 + 1;
+			if (free1 == 0) free_count = free2 + 1;
+
+			if (move_count > free_count) {
+				ShowHint('空档位置不足以移动 ' + move_count + ' 张牌！');
+				result = false;
+			}
+		}
+		return result;
+	}
+
+	function check_game_state() {
+
+		console.log('—— check_game_state ——');
+		var free_count = $('.free_item[card_index="*"]').length;
+		var left_cards = $('.card_item[pos=0]').length;
+		console.log('free_count=' + free_count);
+		console.log('left_cards=' + left_cards);
+		if (free_count == 4 && left_cards == 0) {
+			ShowHint('恭喜你，挑战成功！');
+			return;
+		}
+
+		if (free_count > 0) return;
+
+
+
+		var base_count = 0;
+		for (var i = 0; i < 8; i++) {
+			var n = $('.card_item[i=' + i + '][pos=0]').length;
+			if (n == 0) base_count++;
+		}
+		console.log('base=' + base_count);
+		if (base_count > 0) return;
+
+		var valid_step = 0;
+		for (var i = 0; i < 7; i++) {
+			var n1 = $('.card_item[i=' + i + '][pos=0]').length;
+			var last_card1 = $('.card_item[i=' + i + '][j=' + (n1 - 1) + ']').attr('card_index');
+			for (var j = i; j < 8; j++) {
+				var n2 = $('.card_item[i=' + j + '][pos=0]').length;
+				var last_card2 = $('.card_item[i=' + j + '][j=' + (n2 - 1) + ']').attr('card_index');
+
+				var A1 = last_card1.substring(0, 1);
+				var B1 = last_card1.substring(1, 3);
+				var A2 = last_card2.substring(0, 1);
+				var B2 = last_card2.substring(1, 3);
+				if (Math.abs(parseInt(B1) - parseInt(B2)) == 1) {
+					var A_diff = Math.abs(A1.charCodeAt(0) - A2.charCodeAt(0));
+					if (A_diff % 2 == 1) valid_step++;
+				}
+			}
+		}
+		console.log('1.valid_step=' + valid_step);
+		for (var i = 0; i < 4; i++) {
+			var free_card = $('.free_item[index=' + i + ']').attr('card_index');
+			for (var j = 0; j < 8; j++) {
+				var n = $('.card_item[i=' + j + '][pos=0]').length;
+				var last_card = $('.card_item[i=' + j + '][j=' + (n - 1) + ']').attr('card_index');
+				var A1 = free_card.substring(0, 1);
+				var B1 = free_card.substring(1, 3);
+				var A2 = last_card.substring(0, 1);
+				var B2 = last_card.substring(1, 3);
+
+				if (parseInt(B2) - parseInt(B1) == 1) {
+					var A_diff = Math.abs(A1.charCodeAt(0) - A2.charCodeAt(0));
+					if (A_diff % 2 == 1) valid_step++;
+				}
+			}
+		}
+		console.log('2.valid_step=' + valid_step);
+		if (valid_step == 0) ShowHint('哦豁，你已经无路可走了！');
+	}
+
+	var t = null;
+
+	function ShowHint(msg) {
+		if ($('.ShowHint').length > 0) { clearInterval(t); $('.ShowHint').remove(); }
+		if (msg == undefined) msg = '';
+		var sstr = '<div class="ShowHint" style="position:fixed;left:0;right:0;bottom:80;height:2rem;margin:auto;line-height:2rem;padding:0.25rem 0;font-size:1rem;text-align:center;z-index:999999;background:url(img/hint-back-yellow.png) center no-repeat;background-size:auto 100% ;user-select:none;">' + msg + '</div>';
+
+		$('body').append(sstr);
+
+		TimeDelay(200);
+
+		function TimeDelay(x) {
+
+			$('.ShowHint').attr('delay', x);
+			t = setInterval(function removeReadonly() {
+				var delay = $('.ShowHint').attr('delay');
+				if (delay == null) delay = 0;
+				else delay = parseInt(delay);
+				delay--;
+				$('.ShowHint').css('bottom', $(window).height() / 2 - 60 + (160 - delay) / 2);
+				$('.ShowHint').attr('delay', delay);
+				if (delay > 10 && delay <= 100) {
+					$('.ShowHint').css('opacity', delay / 100);
+					$('.ShowHint').css('filter', '(alpha=' + delay + ');');
+				}
+				if (delay <= 10) {
+					clearInterval(t);
+					$('.ShowHint').remove();
+				}
+			}, 10);
+		}
+	}
+
+	function isJSON(str) {
+		try {
+			var obj = JSON.parse(str);
+			if (typeof obj == 'object' && obj) {
+				return true;
+			}
+			else {
+				return false;
+			}
+
+		}
+		catch (e) {
+			return false;
+		}
+	}
+
+	function strToHexCharCode(str) {
+		if (str === "")
+			return "";
+		var hexCharCode = [];
+		//hexCharCode.push("0x"); 
+		for (var i = 0; i < str.length; i++) {
+			hexCharCode.push((str.charCodeAt(i)).toString(16));
+		}
+		return hexCharCode.join("");
+	}
+
+	function hexCharCodeToStr(hexCharCodeStr) {
+		var trimedStr = hexCharCodeStr.trim();
+		var rawStr =
+			trimedStr.substr(0, 2).toLowerCase() === "0x"
+				?
+				trimedStr.substr(2)
+				:
+				trimedStr;
+		var len = rawStr.length;
+		if (len % 2 !== 0) {
+			alert("Illegal Format ASCII Code!");
+			return "";
+		}
+		var curCharCode;
+		var resultStr = [];
+		for (var i = 0; i < len; i = i + 2) {
+			curCharCode = parseInt(rawStr.substr(i, 2), 16); // ASCII Code Value
+			resultStr.push(String.fromCharCode(curCharCode));
+		}
+		return resultStr.join("");
+	}
+
+	function getUrlParam(name) {
+		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); // 构造一个含有目标参数的正则表达式对象
+		var r = window.location.search.substr(1).match(reg);  // 匹配目标参数
+		if (r != null) return unescape(r[2]); return null; // 返回参数值
+	}
+
+	function copyToClipboard(text) {
+		var textarea = document.createElement('textarea');
+		textarea.value = text;
+		document.body.appendChild(textarea);
+		textarea.select();
+		document.execCommand('copy');
+		document.body.removeChild(textarea);
+	}
+</script>

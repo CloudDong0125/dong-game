@@ -1,0 +1,54 @@
+/* 软键盘 */
+#keyboard {
+    display: none;
+  }
+  table {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  tbody {
+    /* background: #f1f3f4; */
+  }
+  th {
+    margin: 4px;
+  }
+  th,
+  td {  
+  
+    /* margin: 5px; */
+    color: white;
+    background: black;
+    border: 1px solid #ccc;
+    padding: 4px;
+    text-align: center;
+    border: none;
+  }
+  
+  td {
+    cursor: pointer;
+    margin: 5px;
+    border-radius: 5px;
+    height: 15px;
+    width: 35px;
+  }
+  
+  .key:hover {
+    cursor: pointer;
+    background: rgb(234, 93, 42);
+    color: black;
+  }
+  
+  .num {
+    width: 13px;
+  }
+  .kou {
+    background: white;
+    width: 5px;
+  }
+  .kou:hover {
+
+    background: white;
+ 
+  }

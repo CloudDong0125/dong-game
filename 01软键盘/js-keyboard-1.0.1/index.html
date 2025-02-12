@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>js_软键盘</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <!-- <link rel="stylesheet" type="text/css" href="./css/keyboard.css"> -->
+</head>
+
+<body>
+    <div class="container-body">
+        <div class="login-group" id="login-group">
+            <div class="login-box">
+                <h1>欢迎登录</h1>
+                <!--分隔符-->
+                <div class="light-white"></div>
+
+                <!--账号输入框-->
+                <div class="login-input">
+                    <input class="input1 input" id="username" type="text" placeholder="请输入账号" maxlength="15" />
+                    <img class="img" src="./images/jianpan.png" onclick="ctrKeyboard('username')"/>
+                    <!-- <img class="img" src="./images/jianpan.png" /> -->
+                </div>
+
+                <!--密码输入框-->
+                <div class="login-input">
+                    <input class="input1 input" id="password" type="password" placeholder="请输入密码" maxlength="15" />
+                    <img class="img" src="./images/jianpan.png" onclick="ctrKeyboard('password')"/> 
+                    <!-- <img class="img" src="./images/jianpan.png" /> -->
+                </div>
+                <button id="loginBtn" onclick="loginBtn()">登 录</button>
+
+            </div>
+        </div>
+
+
+
+    </div>
+
+    <script>
+        // $('input').click(function () {
+        //     console.log($(this))
+        //     ctrKeyboard($(this))
+        // })
+        $('input').click(function () {
+            _keyboard.show($(this))
+            // this.board
+            // console.log(board)
+        })
+        function loginBtn() {
+            console.log("loginBtn") 
+            var userName  =$("#username").val();
+            var passWord  = $("#password").val();
+            console.log(userName)
+            // return;
+            if (userName.length == 0) {
+                alert("请输入账号");
+                return;
+            }
+            if (passWord.length == 0) {
+                alert("请输入密码");
+                return;
+            }
+            alert("欢迎用户 " + userName + " 登录")
+            // 清空
+            userName = ""
+            passWord = ""
+        }
+    </script>
+    <!-- <script type="text/javascript" src="js/keyboard-230714.js"></script> -->
+    <script src="./js/keyboard-230715.js"></script>
+
+</body>
+
+
+</html>

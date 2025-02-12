@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>俄罗斯方块01</title>
+    <style>
+        body {
+            background-color: #fff;
+            text-align: center;
+        }
+
+        #container {
+            background-color: #fff;
+            margin: 0 20px 0 20px;
+        }
+
+        .title {
+            width: 100%;
+            font-size: 1.2rem;
+            height: 4rem;
+            line-height: 4rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+        }
+
+        .button_box {
+            display: flex;
+            justify-content: space-around;
+            width: 18rem;
+            line-height: 4rem;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="title">俄罗斯方块（第一步）</div>
+        <canvas id="container"></canvas>
+        <div class="button_box">
+            <div id="shengcheng">生成</div>
+            <div>左转</div>
+            <div>右转</div>
+            <div>左移</div>
+            <div>右移</div>
+            <div>下移</div>
+        </div>
+    </div>
+
+
+    <script>
+        let container = document.getElementById("container")
+        let box = container.getContext('2d')
+
+        /*
+        * 基础配置
+        */
+
+        // 整体容器宽高
+        container.width = 288
+        container.height = 481
+
+        // 每个格子宽高
+        let Width = 21
+        let Height = 31
+
+        let curShape
+
+
+
+        box.fillStyle = 'white'
+        box.fillRect(0, 0, container.width, container.height)
+        box.strokeRect(0, 0, container.width, container.height)
+        let boxArray = [...Array(Width)].map(e => Array(Height).fill(0)) // 二维数组，映射关系
+
+
+        // 七种图形
+        let one = [[1, 0], [0, 1], [1, 1], [2, 1]]
+        let two = [[0, 0], [1, 0], [2, 0], [3, 0]]
+        let three = [[1, 0], [2, 0], [0, 1], [1, 1]]
+        let four = [[0, 0], [0, 1], [1, 0], [1, 1]]
+        let five = [[0, 0], [0, 1], [1, 1], [2, 1]]
+        let sex = [[0, 2], [0, 1], [1, 1], [2, 1]]
+        let seven = [[0, 0], [0, 1], [1, 1], [2, 1]]
+        let randomBox = Math.random()*360 
+        let shapes = [one, two, three, four, five, sex, seven]
+
+        /*
+        * 主逻辑
+        */
+        // 构造坐标类
+        class Coordinate {
+
+            constructor(x, y) {
+                this.x = x
+                this.y = y
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initBox)
+        function initBox() {
+            createBoxArray() // 生成数据
+            bindClick()
+            
+        }
+
+
+        // createBoxArray()
+        console.log(boxArray)
+        // 生成二维数组
+        function createBoxArray() {
+            let i = 0, j = 0
+            for (let y = 5; y <= 420; y += 20) {
+                for (let x = 5; x <= 620; x += 20) {
+                    if (!boxArray[i]) {
+                        // console.log(i,j)
+                    } else {
+
+                        boxArray[i][j] = new Coordinate(x, y)
+                    }
+                    i++ 
+                }
+                j++
+                i = 0
+            }
+
+        }
+
+        // 绘制七种图形
+        function drawBoxArray() {
+            box.fillStyle="white";
+            box.fillRect(6*20, 2, 8*20, 20*4)
+            for (let i = 0; i < curShape.length; i++) {
+                let a = curShape[i][0] + 6
+                let b = curShape[i][1] + 0
+
+                let boxX = boxArray[a][b].x
+                let boxY = boxArray[a][b].y
+
+                box.fillStyle = 'hsl(' + randomBox + ',100%,50%)'
+                box.fillRect(boxX, boxY, 19, 19)
+
+            }
+        }
+        function randomBoxArray() {
+            let randomIndex = Math.floor(Math.random() * shapes.length)
+            let shape = shapes[randomIndex]
+            curShape = shape
+        }
+
+        /*
+        监听事件
+        **/
+        function bindClick() {
+            this.shengcheng.onmousedown = function (e) {
+                console.log("生成")
+                randomBoxArray()
+                drawBoxArray()
+            }
+        }
+
+    </script>
+</body>
+
+</html>
